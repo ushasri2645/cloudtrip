@@ -1,0 +1,16 @@
+default: &default
+  adapter: postgresql
+  encoding: unicode
+  pool: 5
+
+development:
+  <<: *default
+  url: <%= ENV["DEV_DB_URL"] %>
+
+test:
+  <<: *default
+  url: <%= ENV["TEST_DB_URL"] %>
+
+production:
+  <<: *default
+  url: <%= ENV["DEV_DB_URL"] %>
