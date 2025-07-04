@@ -1,0 +1,47 @@
+:root {
+  --primary-button: #4C8DAA;
+  --app-bg: #C8EAF0;
+  --card-bg: #FFFFFF;
+  --header-text: #4C8DAA;
+  --body-text: #333333;
+  --accent-text: #FFA999;
+  --burnt-red: #a7391e;
+  --font-family-inter: 'Inter', sans-serif;
+}
+
+.card {
+  background-color: var(--app-bg);
+  color: var(--body-text);
+  font-family: var(--font-family-inter);
+}
+
+.header-text {
+  color: var(--header-text);
+}
+
+.header-lg {
+  font-size: 2rem;
+}
+
+.header-md {
+  font-size: 1.5rem;
+}
+
+.header-sm {
+  font-size: 1.25rem;
+}
+
+.button-primary {
+  background-color: var(--primary-button);
+  color: white;
+  padding: 0.7rem 1.2rem;
+  border: none;
+  border-radius: 0.25rem;
+  font-family: var(--font-family-inter);
+}
+
+.burnt-red {
+  background-color: var(--burnt-red);
+  color: white;
+  padding: 0.5rem;
+}
