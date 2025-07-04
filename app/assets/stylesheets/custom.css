@@ -13,6 +13,7 @@
   background-color: var(--app-bg);
   color: var(--body-text);
   font-family: var(--font-family-inter);
+  margin: 0;
 }
 
 .header-text {
@@ -21,6 +22,8 @@
 
 .header-lg {
   font-size: 2rem;
+  font-weight: 800;
+  color: var(--header-text);
 }
 
 .header-md {
@@ -29,6 +32,15 @@
 
 .header-sm {
   font-size: 1.25rem;
+}
+
+.force-size {
+  height: 56px;
+  width: 56px;
+}
+
+.white-shadow {
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.6);
 }
 
 .button-primary {
