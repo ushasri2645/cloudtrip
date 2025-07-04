@@ -1,6 +1,6 @@
 # ✈️ CloudTrip – Flight Booking Console Application
 
-CloudTrip is a simple yet powerful **flight booking system** built with Ruby (or your preferred language) that enables users to search and book flights based on multiple criteria. The application uses **file-based storage** (`data.txt`) to manage flight availability and booking information.
+CloudTrip is a simple yet powerful **flight booking system** built with Ruby that enables users to search and book flights based on multiple criteria. The application uses **file-based storage** (`data.txt`) to manage flight availability and booking information.
 
 ---
 
@@ -37,8 +37,8 @@ CloudTrip is a simple yet powerful **flight booking system** built with Ruby (or
   - Pricing strategy (dynamic pricing)
 
 ### Dynamic Pricing Logic
-- **Seat-based pricing:**
-- **Date-based pricing:**
+- Seat-based pricing
+- Date-based pricing
 
 ### ✅ Round Trip Support *(Optional)*
 - Book **round trips** with a **5% discount**.
@@ -76,7 +76,7 @@ bundle exec rails server
 
 ### 4. Visit 
 ```bash
-htttp://localhost:5050
+htttp://localhost:3000
 ```
 
 ## Contact
