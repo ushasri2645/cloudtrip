@@ -3,7 +3,7 @@ name: CloudTrip CI
 on:
   pull_request:
   push:
-    branches: [ main ]
+    branches: [ main, ui/navbar]
 
 jobs:
   scan_ruby:
