@@ -1,12 +1,33 @@
 :root {
-  --primary-button: #4C8DAA;
-  --app-bg: #C8EAF0;
-  --card-bg: #FFFFFF;
-  --header-text: #4C8DAA;
+  --primary-button: #4c8daa;
+  --app-bg: #c8eaf0;
+  --card-bg: #ffffff;
+  --header-text: #4c8daa;
   --body-text: #333333;
-  --accent-text: #FFA999;
+  --accent-text: #ffa999;
   --burnt-red: #a7391e;
   --font-family-inter: 'Inter', sans-serif;
+  --footer-text: #ffffff;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+.page-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.content-wrap {
+  flex: 1;
+  width: 100%;
+  padding: 0 1rem;
 }
 
 .card {
@@ -50,6 +71,15 @@
   border: none;
   border-radius: 0.25rem;
   font-family: var(--font-family-inter);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: block;
+  text-align: center;
+  transition: background-color 0.3s ease;
+}
+
+.button-primary:hover {
+  background-color: #3a6e88;
 }
 
 .burnt-red {
