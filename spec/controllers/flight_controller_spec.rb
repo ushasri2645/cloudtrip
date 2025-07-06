@@ -49,5 +49,34 @@ RSpec.describe "Flights", type: :request do
         expect(response.body).to include("F101")
       end
     end
+
+    context "when passenger count is greater than available seats" do
+    it "does not return the flight" do
+      post "/flights/search", params: {
+        source: "Bangalore",
+        destination: "London",
+        date: "2025-07-04",
+        passengers: 150
+      }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("No Flights Available")
+      expect(response.body).not_to include("F101")
+    end
+  end
+
+  context "when passenger count is within available seats" do
+    it "returns the flight" do
+      post "/flights/search", params: {
+        source: "Bangalore",
+        destination: "London",
+        date: "2025-07-04",
+        passengers: 3
+      }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include("F101")
+    end
+  end
   end
 end
