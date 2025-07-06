@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Flights", type: :request do
-  DATA_PATH = Rails.root.join("data", "data.txt")
+  DATA_PATH = Rails.root.join("data/data.txt")
 
   before(:all) do
     FileUtils.mkdir_p(DATA_PATH.dirname)

@@ -1,7 +1,7 @@
 require "rails_helper"
 
 RSpec.describe "Flights", type: :request do
-  let(:data_path) { Rails.root.join("data", "data.txt") }
+  let(:data_path) { Rails.root.join("data/data.txt") }
 
   before do
     # Create the test data file
