@@ -207,6 +207,10 @@
           <%= f.label :destination, "Destination :" %> <%= f.text_field :destination, placeholder: "London" %>
         </div>
       </div>
+      <div class="form-group">
+        <%= f.label :date, "Departure Date :" %> <%= f.date_field :date,
+        placeholder: "YYYY-MM-DD" %>
+      </div>
       <%= f.submit "Search Flights", class: "button-primary" %> <% end %> <% if
       flash[:alert] %>
       <p style="color: red"><%= flash[:alert] %></p>
