@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <style>
+      .container {
+        margin: 2rem;
+        background-color: var(--app-bg);
+        border-radius: 0.75rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        padding: 1.5rem;
+        font-family: var(--font-family-inter);
+      }
+
+      .sub-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: var(--body-text);
+        font-size: 1rem;
+      }
+
+      form {
+        background-color: #fff;
+        padding: 2rem;
+        max-width: 600px;
+        border-radius: 0.5rem;
+      }
+
+      .form-group {
+        display: flex;
+        margin-bottom: 1.5rem;
+      }
+
+      @media (min-width: 600px) {
+        .form-group.half {
+          flex-direction: row;
+        }
+
+        .form-group.half > div {
+          flex: 1;
+          min-width: calc(50% - 0.5rem);
+        }
+      }
+
+      .form-group label {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--body-text);
+      }
+
+      .form-group input,
+      .form-group select {
+        width: 100%;
+        padding: 0.6rem 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 0.25rem;
+        font-family: var(--font-family-inter);
+        font-size: 1rem;
+        color: var(--body-text);
+        background-color: #fff;
+      }
+
+      .radio-group {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .sub-header {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: var(--body-text);
+        font-size: 1.2rem;
+      }
+
+      form {
+        background-color: #fff;
+        padding: 2rem;
+        border-radius: 0.5rem;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+      }
+
+      @media (min-width: 600px) {
+        .form-group.half {
+          flex-direction: row;
+        }
+
+        .form-group.half > div {
+          flex: 1;
+          min-width: calc(50% - 0.5rem);
+        }
+      }
+
+      .form-group label {
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: var(--body-text);
+      }
+
+      .form-group input,
+      .form-group select {
+        padding: 0.6rem 0.75rem;
+        border: 1px solid #ccc;
+        border-radius: 0.25rem;
+        width: 220px;
+        font-family: var(--font-family-inter);
+        font-size: 1rem;
+        color: var(--body-text);
+        background-color: #fff;
+      }
+
+      .radio-group {
+        display: flex;
+        justify-content: center;
+        gap: 2rem;
+        margin-bottom: 1.5rem;
+      }
+      .flight-card {
+        background: #fff;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        max-width: 700px;
+        width: 100%;
+      }
+
+      .flight-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+      }
+
+      .flight-card-header .route {
+        color: var(--header-text);
+        font-weight: bold;
+        font-size: 1.2rem;
+      }
+
+      .flight-card-header .flight-number {
+        color: var(--primary-button);
+        font-size: 0.95rem;
+      }
+
+      .flight-card-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+        color: var(--body-text);
+        font-size: 0.95rem;
+      }
+
+      .flight-card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        border-top: 1px solid #ddd;
+        padding-top: 1rem;
+      }
+
+      .fare {
+        font-size: 1rem;
+        color: var(--body-text);
+      }
+
+      .inner-details {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: flex-start;
+        gap: 0.4rem;
+      }
+      .fare-amount {
+        color: var(--primary-button);
+        font-weight: bold;
+        font-size: 1.2rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="header-text header-lg">Find Your Next Adventure</h1>
+      <p class="sub-header">
+        Search for flights to your dream destinations and book with ease.
+      </p>
+      <%= form_with url: flights_search_path, method: :post, local: true, data:
+      { turbo: false } do |f| %>
+      <div class="form-group half">
+        <div>
+          <%= f.label :source, "Origin :" %> <%= f.text_field :source,
+          placeholder: "Bangalore" %>
+        </div>
+        <div>
+          <%= f.label :destination, "Destination :" %> <%= f.text_field :destination, placeholder: "London" %>
+        </div>
+      </div>
+      <%= f.submit "Search Flights", class: "button-primary" %> <% end %> <% if
+      flash[:alert] %>
+      <p style="color: red"><%= flash[:alert] %></p>
+      <% end %> <% if @matching_flights.present? %>
+      <h2 class="header-text">Flight Search Results</h2>
+
+      <% @matching_flights.each do |flight| %>
+      <div class="flight-card">
+        <div class="flight-card-header">
+          <span class="route">
+            <%= flight[:source] %> to <%= flight[:destination] %>
+          </span>
+          <span class="flight-number header-lg">
+            Flight <%= flight[:flight_number] %>
+          </span>
+        </div>
+
+        <div class="flight-card-details">
+          <div class="inner-details">
+            <strong>Departure:</strong>
+            <%= flight[:date] %> at <%= flight[:departure_time] %>
+          </div>
+          <div class="inner-details">
+            <strong>Arrival:</strong>
+            <%= flight[:date] %> at <%= flight[:arrival_time] %>
+          </div>
+          <div class="inner-details">
+            <strong>Class:</strong>
+            <%= 'First Class' %>
+          </div>
+          <div class="inner-details">
+            <strong>Available Seats:</strong>
+            <%= flight[:first_class_seats] %>
+          </div>
+        </div>
+
+        <div class="flight-card-footer">
+          <div class="fare inner-details">
+            Total Fare for 1 passenger(s):
+            <span class="fare-amount"
+              >$<%= sprintf('%.2f', flight[:price]) %></span
+            >
+          </div>
+          <button class="button-primary">Book Now</button>
+        </div>
+      </div>
+      <% end %> <% end %>
+    </div>
+  </body>
+</html>

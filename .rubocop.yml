@@ -19,3 +19,6 @@ AllCops:
 
 Rails:
   Enabled: true
+
+Rails/I18nLocaleTexts:
+  Enabled: false
