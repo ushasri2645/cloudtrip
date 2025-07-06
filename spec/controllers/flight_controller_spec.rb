@@ -25,7 +25,7 @@ RSpec.describe "Flights", type: :request do
 
     context "when no matching flights exist" do
       it "shows flash alert" do
-        post "/flights/search", params: { source: "Mumbai", destination: "Paris", date: "2025-07-04"}
+        post "/flights/search", params: { source: "Mumbai", destination: "Paris", date: "2025-07-04" }
 
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("No Flights Available")
