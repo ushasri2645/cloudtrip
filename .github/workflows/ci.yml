@@ -3,7 +3,7 @@ name: CloudTrip CI
 on:
   pull_request:
   push:
-    branches: [ feature/flight-search-by-source-destination ]
+    branches: [ main ]
 
 jobs:
   lint:

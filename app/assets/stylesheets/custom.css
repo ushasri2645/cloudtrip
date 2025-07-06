@@ -6,13 +6,35 @@
   --body-text: #333333;
   --accent-text: #ffa999;
   --burnt-red: #a7391e;
-  --font-family-inter: "Inter", sans-serif;
+  --font-family-inter: 'Inter', sans-serif;
+  --footer-text: #ffffff;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+.page-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.content-wrap {
+  flex: 1;
+  width: 100%;
+  padding: 0 1rem;
 }
 
 .card {
   background-color: var(--app-bg);
   color: var(--body-text);
   font-family: var(--font-family-inter);
+  margin: 0;
 }
 
 .header-text {
@@ -22,6 +44,7 @@
 .header-lg {
   font-size: 2rem;
   font-weight: 800;
+  color: var(--header-text);
 }
 
 .header-md {
@@ -30,6 +53,15 @@
 
 .header-sm {
   font-size: 1.25rem;
+}
+
+.force-size {
+  height: 56px;
+  width: 56px;
+}
+
+.white-shadow {
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.6);
 }
 
 .button-primary {

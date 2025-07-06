@@ -20,7 +20,13 @@
     javascript_importmap_tags %>
   </head>
 
-  <body>
-    <main><%= yield %></main>
+  <body class="page-container">
+    <%= render 'shared/navbar' %>
+
+    <main class="content-wrap">
+      <%= yield %>
+    </main>
+
+    <%= render 'shared/footer' %>
   </body>
 </html>

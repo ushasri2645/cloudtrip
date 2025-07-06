@@ -1,0 +1,50 @@
+<style>
+  .card {
+    background-color: var(--app-bg);
+    color: var(--body-text);
+    font-family: var(--font-family-inter);
+  }
+
+  .navbar-header {
+    width: 100%;
+    background-color: var(--card-bg);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 1rem 2rem;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    position: relative;
+  }
+
+  .navbar-logo {
+    height: 70px;
+    width: 70px;
+    object-fit: contain;
+  }
+
+  .title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+</style>
+
+<body>
+  <header class="navbar-header">
+    <nav class="container flex items-center justify-between">
+      <!-- Left: Logo -->
+      <div class="logo">
+        <%= image_tag "logo_without_name.png", alt: "CloudTrip Logo", class: "navbar-logo" %>
+      </div>
+
+      <!-- Center: Title -->
+      <div class="title mx-auto">
+        <span class="header-lg">CloudTrip</span>
+      </div>
+    </nav>
+  </header>
+</body>
