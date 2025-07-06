@@ -9,12 +9,13 @@ class FlightsController < ApplicationController
     source = params[:source]
     destination = params[:destination]
     date = params[:date]
+    passengers = params[:passengers].to_i
     flights = read_flights
     @matching_flights = flights.select do |flight|
       flight[:source].casecmp?(source) &&
       flight[:destination].casecmp?(destination) &&
       flight[:date] == date &&
-      flight[:total_seats].to_i > 0
+      flight[:total_seats].to_i > passengers
     end
     flash.now[:alert] = "No Flights Available" if @matching_flights.empty?
     render :index
