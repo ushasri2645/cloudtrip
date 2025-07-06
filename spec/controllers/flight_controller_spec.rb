@@ -1,10 +1,9 @@
 require "rails_helper"
 
 RSpec.describe "Flights", type: :request do
-  let(:data_path) { Rails.root.join("data/data.txt") }
+  let(:data_path) { Rails.root.join("spec/testData/testData.txt") }
 
   before do
-    # Create the test data file
     FileUtils.mkdir_p(data_path.dirname)
     File.write(data_path, <<~DATA)
       F101,Bangalore,London,2025-07-04,03:23 PM,09:23 PM,100,500,50,30,20
@@ -12,15 +11,10 @@ RSpec.describe "Flights", type: :request do
       F103,Chennai,London,2025-07-05,10:00 AM,04:00 PM,50,600,20,20,10
     DATA
   end
-
-  after do
-    File.delete(data_path) if File.exist?(data_path)
-  end
-
   describe "POST /flights/search" do
     context "when matching flights exist" do
       it "returns matching flights in the response" do
-        post "/flights/search", params: { source: "Bangalore", destination: "London" }
+        post "/flights/search", params: { source: "Bangalore", destination: "London", date: "2025-07-04" }
 
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("Bangalore")
@@ -31,7 +25,7 @@ RSpec.describe "Flights", type: :request do
 
     context "when no matching flights exist" do
       it "shows flash alert" do
-        post "/flights/search", params: { source: "Mumbai", destination: "Paris" }
+        post "/flights/search", params: { source: "Mumbai", destination: "Paris", date: "2025-07-04"}
 
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("No Flights Available")
@@ -40,7 +34,7 @@ RSpec.describe "Flights", type: :request do
 
     context "when seats are zero" do
       it "does not return flights with 0 seats" do
-        post "/flights/search", params: { source: "Bangalore", destination: "New York" }
+        post "/flights/search", params: { source: "Bangalore", destination: "New York", date: "2025-07-04" }
 
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("No Flights Available")
@@ -50,8 +44,7 @@ RSpec.describe "Flights", type: :request do
 
     context "case-insensitive matching" do
       it "matches source and destination regardless of case" do
-        post "/flights/search", params: { source: "bangalore", destination: "london" }
-
+        post "/flights/search", params: { source: "bangalore", destination: "london", date: "2025-07-04" }
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("F101")
       end
