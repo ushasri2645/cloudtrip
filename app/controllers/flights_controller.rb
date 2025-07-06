@@ -1,5 +1,6 @@
 class FlightsController < ApplicationController
-  DATA_PATH = Rails.root.join("data/data.txt")
+  # DATA_PATH = Rails.root.join("data/data.txt")
+  DATA_PATH = Rails.configuration.flight_data_file
   def index
   end
 
@@ -7,10 +8,12 @@ class FlightsController < ApplicationController
     @cities = [ "Bangalore", "Chennai", "Delhi", "Mumbai", "London", "New York" ]
     source = params[:source]
     destination = params[:destination]
+    date = params[:date]
     flights = read_flights
     @matching_flights = flights.select do |flight|
       flight[:source].casecmp?(source) &&
       flight[:destination].casecmp?(destination) &&
+      flight[:date] == date &&
       flight[:total_seats].to_i > 0
     end
     flash.now[:alert] = "No Flights Available" if @matching_flights.empty?
