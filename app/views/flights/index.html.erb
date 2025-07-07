@@ -3,15 +3,15 @@
   <head>
     <style>
       .container {
-        margin: 2rem;
         background-color: var(--app-bg);
         border-radius: 0.75rem;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
         align-items: center;
-        padding: 1.5rem;
         font-family: var(--font-family-inter);
+        margin-top: 2rem;
+        padding: 1.5rem 1.5rem;
       }
 
       .sub-header {
@@ -26,6 +26,7 @@
         padding: 2rem;
         max-width: 600px;
         border-radius: 0.5rem;
+        box-sizing: border-box;
       }
 
       .form-group {
@@ -136,17 +137,30 @@
         Search for flights to your dream destinations and book with ease.
       </p>
 
-      <%= form_with url: flights_search_path, method: :post, local: true, data:
-      { turbo: false } do |f| %>
-      <div class="form-group half">
-        <div>
-          <%= f.label :source, "Origin :" %> <%= f.text_field :source,
-          placeholder: "Bangalore" %>
+      <%= form_with url: flights_search_path, method: :post, local: true, data: { turbo: false } do |f| %>
+        <div class="form-group half">
+          <div>
+            <%= f.label :source, "Origin :" %>
+            <%= f.text_field :source, id: "source-input", list: "source-list" %>
+          </div>
+          <div>
+            <%= f.label :destination, "Destination :" %>
+            <%= f.text_field :destination, id: "destination-input", list: "destination-list" %>
+          </div>
         </div>
-        <div>
-          <%= f.label :destination, "Destination :" %> <%= f.text_field:destination, placeholder: "London" %>
-        </div>
-      </div>
+        
+        <datalist id="source-list">
+        <% @cities.each do |city| %>
+          <option value="<%= city %>">
+        <% end %>
+      </datalist>
+
+    <datalist id="destination-list">
+      <% (@destination_options || @cities).each do |city| %>
+        <option value="<%= city %>">
+      <% end %>
+    </datalist>
+            
 
       <div class="form-group half">
         <div>
@@ -166,11 +180,15 @@
         </div>
       </div>
 
-      <%= f.submit "Search Flights", class: "button-primary" %> <% end %> <% if
-      flash[:alert] %>
-      <p style="color: red"><%= flash[:alert] %></p>
-      <% end %> <% if @matching_flights.present? %>
-      <h2 class="header-text">Flight Search Results</h2>
+        <%= f.submit "Search Flights", class: "button-primary" %>
+      <% end %>
+
+      <% if flash[:alert] %>
+        <p style="color: red; font-weight: bold;"><%= flash[:alert] %></p>
+      <% end %>
+
+      <% if @matching_flights.present? %>
+        <h2 class="header-text">Flight Search Results</h2>
 
       <% @matching_flights.each do |flight| %>
       <div class="flight-card">

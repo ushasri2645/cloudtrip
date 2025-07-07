@@ -2,15 +2,27 @@ require_relative "../services/dynamic_pricing_service"
 
 class FlightsController < ApplicationController
   DATA_PATH = Rails.configuration.flight_data_file
-
-  def index; end
+  def index
+    @cities = load_unique_cities
+  end
 
   def search
+    @cities = load_unique_cities
+
     source = params[:source]
     destination = params[:destination]
     date = params[:date]
     passengers = params[:passengers].to_i
     class_type = params[:class_type]
+
+    @destination_options = @cities.reject { |city| city.casecmp?(source.to_s) }
+
+    if source.present? && destination.present? && source.casecmp?(destination)
+    flash.now[:alert] = "Origin and Destination must be different."
+    @matching_flights = []
+    return render :index
+    end
+
     flights = read_flights
     price_multiplier = 1.0
     @matching_flights = flights.select do |flight|
@@ -81,5 +93,9 @@ class FlightsController < ApplicationController
         first_class_total: fields[13].to_i
       }
     end
+  end
+
+  def load_unique_cities
+    read_flights.flat_map { |f| [ f[:source], f[:destination] ] }.uniq.sort
   end
 end
