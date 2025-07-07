@@ -1,9 +1,9 @@
 :root {
-  --primary-button: #4c8daa;
+  --primary-button:#eba06b;
   --app-bg: #c8eaf0;
   --card-bg: #ffffff;
-  --header-text: #4c8daa;
-  --body-text: #333333;
+  --header-text: #eba06b;
+  --body-text: #374151;
   --accent-text: #ffa999;
   --burnt-red: #a7391e;
   --font-family-inter: 'Inter', sans-serif;
@@ -82,7 +82,9 @@ html, body {
   cursor: pointer;
   display: block;
   text-align: center;
+  width:auto;
   transition: background-color 0.3s ease;
+  align-self: center;
 }
 
 .button-primary:hover {
