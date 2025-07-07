@@ -1,15 +1,25 @@
 class FlightsController < ApplicationController
-  # DATA_PATH = Rails.root.join("data/data.txt")
   DATA_PATH = Rails.configuration.flight_data_file
   def index
+    @cities = load_unique_cities
   end
 
   def search
-    @cities = [ "Bangalore", "Chennai", "Delhi", "Mumbai", "London", "New York" ]
+    @cities = load_unique_cities
+
     source = params[:source]
     destination = params[:destination]
     date = params[:date]
     passengers = params[:passengers].to_i
+
+    @destination_options = @cities.reject { |city| city.casecmp?(source.to_s) }
+
+    if source.present? && destination.present? && source.casecmp?(destination)
+    flash.now[:alert] = "Origin and Destination must be different."
+    @matching_flights = []
+    return render :index
+    end
+
     flights = read_flights
     @matching_flights = flights.select do |flight|
       flight[:source].casecmp?(source) &&
@@ -17,11 +27,13 @@ class FlightsController < ApplicationController
       flight[:date] == date &&
       flight[:total_seats].to_i > passengers
     end
+
     flash.now[:alert] = "No Flights Available" if @matching_flights.empty?
     render :index
   end
 
   private
+
   def read_flights
     File.readlines(DATA_PATH).map do |line|
       fields = line.strip.split(",")
@@ -39,5 +51,9 @@ class FlightsController < ApplicationController
         first_class_seats: fields[10].to_i
       }
     end
+  end
+
+  def load_unique_cities
+    read_flights.flat_map { |f| [ f[:source], f[:destination] ] }.uniq.sort
   end
 end
