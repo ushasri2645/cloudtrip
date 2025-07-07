@@ -78,5 +78,21 @@ RSpec.describe "Flights", type: :request do
       expect(response.body).to include("F101")
     end
   end
+
+  context "when origin and destination are the same" do
+      it "shows an error and no flights" do
+        post "/flights/search", params: {
+          source: "Chennai",
+          destination: "Chennai",
+          date: "2025-07-04",
+          passengers: 1
+        }
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("Origin and Destination must be different.")
+        expect(response.body).not_to include("F101")
+        expect(response.body).not_to include("F103")
+      end
+    end
   end
 end
