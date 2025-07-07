@@ -43,6 +43,7 @@ class FlightsController < ApplicationController
     .map do |flight|
         total_fare = flight[:price] * price_multiplier * passengers
         flight.merge(total_fare: total_fare)
+    end
     flash.now[:alert] = "No Flights Available" if @matching_flights.empty?
     render :index
   end
