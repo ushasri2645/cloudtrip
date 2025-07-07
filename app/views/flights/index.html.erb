@@ -141,11 +141,11 @@
         <div class="form-group half">
           <div>
             <%= f.label :source, "Origin:" %>
-            <%= f.text_field :source, id: "source-input", list: "source-list" %>
+            <%= f.text_field :source, id: "source-input", list: "source-list", value: params[:source] %>
           </div>
           <div>
             <%= f.label :destination, "Destination:" %>
-            <%= f.text_field :destination, id: "destination-input", list: "destination-list" %>
+            <%= f.text_field :destination, id: "destination-input", list: "destination-list", value: params[:destination] %>
           </div>
         </div>
         
@@ -165,18 +165,20 @@
       <div class="form-group half">
         <div>
           <%= f.label :date, "Departure Date:" %> <%= f.date_field :date,
-          placeholder: "YYYY-MM-DD" %>
+          placeholder: "YYYY-MM-DD", value: params[:date] %>
         </div>
         <div>
           <%= f.label :passengers, "Number of Passengers:" %> <%=
-          f.number_field :passengers, min: 1, placeholder: "1" %>
+          f.number_field :passengers, min: 1, placeholder: "1", value: params[:passengers] %>
         </div>
       </div>
       <div class="form-group half">
         <div>
-          <%= f.label :class_type, "Class Type:" %> <%= f.select :class_type,
-          [["Economy", "economy"], ["Business", "business"], ["First Class",
-          "first_class"]], prompt: "Select Class" %>
+          <%= f.label :class_type, "Class Type:" %>
+            <%= f.select :class_type,
+              [["Economy", "economy"], ["Business", "business"], ["First Class", "first_class"]],
+              { prompt: "Select Class" },
+              { selected: params[:class_type] } %>
         </div>
       </div>
 
