@@ -140,11 +140,11 @@
       <%= form_with url: flights_search_path, method: :post, local: true, data: { turbo: false } do |f| %>
         <div class="form-group half">
           <div>
-            <%= f.label :source, "Origin :" %>
+            <%= f.label :source, "Origin:" %>
             <%= f.text_field :source, id: "source-input", list: "source-list" %>
           </div>
           <div>
-            <%= f.label :destination, "Destination :" %>
+            <%= f.label :destination, "Destination:" %>
             <%= f.text_field :destination, id: "destination-input", list: "destination-list" %>
           </div>
         </div>
@@ -164,17 +164,17 @@
 
       <div class="form-group half">
         <div>
-          <%= f.label :date, "Departure Date :" %> <%= f.date_field :date,
+          <%= f.label :date, "Departure Date:" %> <%= f.date_field :date,
           placeholder: "YYYY-MM-DD" %>
         </div>
         <div>
-          <%= f.label :passengers, "Number of Passengers :" %> <%=
+          <%= f.label :passengers, "Number of Passengers:" %> <%=
           f.number_field :passengers, min: 1, placeholder: "1" %>
         </div>
       </div>
       <div class="form-group half">
         <div>
-          <%= f.label :class_type, "Class Type :" %> <%= f.select :class_type,
+          <%= f.label :class_type, "Class Type:" %> <%= f.select :class_type,
           [["Economy", "economy"], ["Business", "business"], ["First Class",
           "first_class"]], prompt: "Select Class" %>
         </div>
@@ -222,9 +222,14 @@
 
         <div class="flight-card-footer">
           <% total = flight[:price] * params[:passengers].to_i %>
-          <div class="fare inner-details">
+         <div class="fare inner-details">
             Total Fare for <%= params[:passengers] %> passenger(s):
-          <span class="fare-amount"> $<%= sprintf('%.2f', flight[:total_fare]) %> </span>
+            <span class="fare-amount">
+              $<%= sprintf('%.2f', flight[:total_fare]) %>
+            </span>
+            <div>
+              (Price per person: $<%= sprintf('%.2f', flight[:price_per_person]) %>)  
+            </div>
           </div>
           <button class="button-primary">Book Now</button>
         </div>
