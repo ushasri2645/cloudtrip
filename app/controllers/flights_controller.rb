@@ -1,5 +1,4 @@
 class FlightsController < ApplicationController
-
   DATA_PATH = Rails.configuration.flight_data_file
   def index
   end
