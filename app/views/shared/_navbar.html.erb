@@ -1,11 +1,10 @@
-<!DOCTYPE html>
 <html>
   <head>
     <title>CloudTrip</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
       .navbar-header {
-        background-color: var(--card-bg, #f8f8f8);
+        background-color: var(--card-bg);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
         padding: 1.5rem 1rem;
       }
@@ -24,9 +23,9 @@
         left: 0;
       }
 
-      .navbar-logo {
-        height: 50px;
-        width: auto;
+      .navbar-image {
+        height: 100px;
+        width: 100px;
         object-fit: contain;
       }
 
@@ -60,7 +59,7 @@
     <header class="navbar-header">
       <nav class="navbar-container">
         <div class="logo">
-          <%= image_tag "logo_without_name.png", alt: "CloudTrip Logo", class: "navbar-logo" %>
+          <%= image_tag "logo_no_name.png", alt: "CloudTrip Logo", class: "navbar-image" %>
         </div>
         <div class="title">
           <span class="header-lg">CloudTrip</span>
