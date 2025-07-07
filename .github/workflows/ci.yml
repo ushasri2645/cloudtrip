@@ -3,7 +3,7 @@ name: CloudTrip CI
 on:
   pull_request:
   push:
-    branches: [ main, fix/deletion-data-txt ]
+    branches: [ main ]
 
 jobs:
   lint:
