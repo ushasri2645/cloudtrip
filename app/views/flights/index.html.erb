@@ -1,243 +1,320 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <style>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Premium Flight Search</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    .hero {
+      position: relative;
+      height: 400px;
+      background: url('https://66.media.tumblr.com/51d284ac08537c871892eea7ecb5d647/tumblr_o6in6mGzxr1ud7phlo1_500.gif') center center / cover no-repeat;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      color: white;
+      font-family: var(--font-family-inter);
+    }
+
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 1;
+    }
+
+    .hero h1 {
+      position: relative;
+      z-index: 2;
+      font-size: 3rem;
+      font-weight: 700;
+      text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+      color:'black'
+    }
+
+    .container {
+      max-width: 960px;
+      margin: -80px auto 3rem;
+      background: #ffffff;
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      position: relative;
+      z-index: 10;
+      font-family: var(--font-family-inter);
+    }
+
+    .sub-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      font-size: 1.2rem;
+      color: var(--body-text);
+    }
+
+    form {
+      background: linear-gradient(135deg, #ffffff, #f9fafe);
+      padding: 2rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (min-width: 600px) {
+      .form-group.half {
+        flex-direction: row;
+      }
+      .form-group.half > div {
+        flex: 1;
+      }
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--body-text);
+    }
+
+    input,
+    select {
+      padding: 0.75rem;
+      border: 1px solid #d3dce6;
+      border-radius: 0.375rem;
+      font-family: var(--font-family-inter);
+      font-size: 1rem;
+      width: 100%;
+      transition: border 0.3s, box-shadow 0.3s;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--primary-button);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+      outline: none;
+    }
+
+  
+    .button-primary:hover {
+      background: #a7391e
+    }
+
+    .flight-card {
+      position: relative;
+      border-radius: 1rem;
+      overflow: hidden;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+      background: #fff;
+    }
+
+    .flight-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      opacity: 0.3;
+      filter: blur(4px);
+      z-index: 0;
+    }
+
+    .flight-card-content {
+      position: relative;
+      z-index: 1;
+      background: rgba(255,255,255,0.8);
+      padding: 2rem;
+      border-radius: 1rem;
+      backdrop-filter: blur(3px);
+    }
+
+    .flight-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .flight-card-header .route {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--header-text);
+    }
+
+    .flight-card-header .flight-number {
+      color: var(--primary-button);
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .flight-card-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--body-text);
+      font-size: 0.95rem;
+    }
+
+    .inner-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .flight-card-footer {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      border-top: 1px solid #ddd;
+      padding-top: 1rem;
+      align-items: center;
+    }
+
+    .fare-amount {
+      font-size: 1.5rem;
+      color:var(--primary-button);
+      font-weight: 700;
+    }
+
+    @media (max-width: 600px) {
+      .hero h1 {
+        font-size: 2rem;
+      }
       .container {
-        background-color: var(--app-bg);
-        border-radius: 0.75rem;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
-        font-family: var(--font-family-inter);
-        padding: 1.5rem;
-        width: 60%;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        margin: 1rem;
+        padding: 1rem;
       }
-
-      .sub-header {
-        text-align: center;
-        margin-bottom: 2rem;
-        color: var(--body-text);
-        font-size: 1rem;
-      }
-
       form {
-        background-color: #fff;
-        padding: 2rem;
-        max-width: 600px;
-        border-radius: 0.5rem;
-        box-sizing: border-box;
+        padding: 1rem;
       }
-
-      .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
+      .flight-card-content {
+        padding: 1rem;
       }
+    }
+  </style>
+</head>
+<body>
 
-      @media (min-width: 600px) {
-        .form-group.half {
-          flex-direction: row;
-        }
+  <div class="hero">
+    <h1>Travel Beyond Boundaries</h1>
+  </div>
 
-        .form-group.half > div {
-          flex: 1;
-          min-width: calc(50% - 0.5rem);
-        }
-      }
+  <div class="container">
+    <p class="sub-header">
+      Search for flights to your dream destinations and book with ease.
+    </p>
 
-      .form-group label {
-        font-weight: 600;
-        font-size: 0.95rem;
-        color: var(--body-text);
-      }
-
-      .form-group input,
-      .form-group select {
-        padding: 0.6rem 0.75rem;
-        border: 1px solid #ccc;
-        border-radius: 0.25rem;
-        font-family: var(--font-family-inter);
-        font-size: 1rem;
-        color: var(--body-text);
-        background-color: #fff;
-        width: 100%;
-      }
-
-      .flight-card {
-        background: #fff;
-        border-radius: 0.5rem;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        max-width: 700px;
-        width: 100%;
-      }
-
-      .flight-card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-      }
-
-      .flight-card-header .route {
-        color: var(--header-text);
-        font-weight: bold;
-        font-size: 1.2rem;
-      }
-
-      .flight-card-header .flight-number {
-        color: var(--primary-button);
-        font-size: 0.95rem;
-      }
-
-      .flight-card-details {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 0.75rem;
-        margin-bottom: 1rem;
-        color: var(--body-text);
-        font-size: 0.95rem;
-      }
-
-      .flight-card-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
-        border-top: 1px solid #ddd;
-        padding-top: 1rem;
-      }
-
-      .fare {
-        font-size: 1rem;
-        color: var(--body-text);
-      }
-
-      .inner-details {
-        display: flex;
-        flex-direction: column;
-        gap: 0.4rem;
-      }
-
-      .fare-amount {
-        color: var(--primary-button);
-        font-weight: bold;
-        font-size: 1.2rem;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="container">
-      <h1 class="header-text header-lg">Find Your Next Adventure</h1>
-      <p class="sub-header">
-        Search for flights to your dream destinations and book with ease.
-      </p>
-
-      <%= form_with url: flights_search_path, method: :post, local: true, data: { turbo: false } do |f| %>
-        <div class="form-group half">
-          <div>
-            <%= f.label :source, "Origin:" %>
-            <%= f.text_field :source, id: "source-input", list: "source-list", value: params[:source] %>
-          </div>
-          <div>
-            <%= f.label :destination, "Destination:" %>
-            <%= f.text_field :destination, id: "destination-input", list: "destination-list", value: params[:destination] %>
-          </div>
+    <%= form_with url: flights_search_path, method: :post, local: true, data: { turbo: false } do |f| %>
+      <div class="form-group half">
+        <div>
+          <%= f.label :source, "Origin:" %>
+          <%= f.text_field :source, id: "source-input", list: "source-list", value: params[:source] %>
         </div>
-        
-        <datalist id="source-list">
+        <div>
+          <%= f.label :destination, "Destination:" %>
+          <%= f.text_field :destination, id: "destination-input", list: "destination-list", value: params[:destination] %>
+        </div>
+      </div>
+
+      <datalist id="source-list">
         <% @cities.each do |city| %>
           <option value="<%= city %>">
         <% end %>
       </datalist>
 
-    <datalist id="destination-list">
-      <% (@destination_options || @cities).each do |city| %>
-        <option value="<%= city %>">
-      <% end %>
-    </datalist>
-            
+      <datalist id="destination-list">
+        <% (@destination_options || @cities).each do |city| %>
+          <option value="<%= city %>">
+        <% end %>
+      </datalist>
 
       <div class="form-group half">
         <div>
-          <%= f.label :date, "Departure Date:" %> <%= f.date_field :date,
-          placeholder: "YYYY-MM-DD", value: params[:date] %>
+          <%= f.label :date, "Departure Date:" %>
+          <%= f.date_field :date, placeholder: "YYYY-MM-DD", value: params[:date] %>
         </div>
         <div>
-          <%= f.label :passengers, "Number of Passengers:" %> <%=
-          f.number_field :passengers, min: 1, placeholder: "1", value: params[:passengers] %>
+          <%= f.label :passengers, "Number of Passengers:" %>
+          <%= f.number_field :passengers, min: 1, placeholder: "1", value: params[:passengers] %>
         </div>
       </div>
       <div class="form-group half">
         <div>
           <%= f.label :class_type, "Class Type:" %>
-            <%= f.select :class_type,
-              [["Economy", "economy"], ["Business", "business"], ["First Class", "first_class"]],
-              { prompt: "Select Class" },
-              { selected: params[:class_type] } %>
+          <%= f.select :class_type,
+            [["Economy", "economy"], ["Business", "business"], ["First Class", "first_class"]],
+            { prompt: "Select Class" },
+            { selected: params[:class_type] } %>
         </div>
       </div>
 
-        <%= f.submit "Search Flights", class: "button-primary" %>
-      <% end %>
+      <%= f.submit "Search Flights", class: "button-primary" %>
+    <% end %>
 
-      <% if flash[:alert] %>
-        <p style="color: red; font-weight: bold;"><%= flash[:alert] %></p>
-      <% end %>
+    <% if flash[:alert] %>
+      <p style="color: red; font-weight: bold;"><%= flash[:alert] %></p>
+    <% end %>
 
-      <% if @matching_flights.present? %>
-        <h2 class="header-text">Flight Search Results</h2>
+    <% if @matching_flights.present? %>
+      <h2 class="header-text" style="margin-top: 2rem; margin-bottom: 1rem; font-size: 2rem; color: var(--header-text);">
+        Flight Search Results
+      </h2>
 
       <% @matching_flights.each do |flight| %>
-      <div class="flight-card">
-        <div class="flight-card-header">
-          <span class="route">
-            <%= flight[:source] %> to <%= flight[:destination] %>
-          </span>
-          <span class="flight-number header-lg">
-            Flight <%= flight[:flight_number] %>
-          </span>
-        </div>
-
-        <div class="flight-card-details">
-          <div class="inner-details">
-            <strong>Departure:</strong>
-            <%= flight[:date] %> at <%= flight[:departure_time] %>
-          </div>
-          <div class="inner-details">
-            <strong>Arrival:</strong>
-            <%= flight[:date] %> at <%= flight[:arrival_time] %>
-          </div>
-          <div class="inner-details">
-            <strong>Class:</strong>
-            <%= params[:class_type] %>
-          </div>
-          <div class="inner-details">
-            <strong>Available Seats:</strong>
-            <%= flight["#{params[:class_type]}_seats".to_sym] %>
-          </div>
-        </div>
-
-        <div class="flight-card-footer">
-          <% total = flight[:price] * params[:passengers].to_i %>
-         <div class="fare inner-details">
-            Total Fare for <%= params[:passengers] %> passenger(s):
-            <span class="fare-amount">
-              $<%= sprintf('%.2f', flight[:total_fare]) %>
-            </span>
-            <div>
-              (Price per person: $<%= sprintf('%.2f', flight[:price_per_person]) %>)  
+        <div class="flight-card">
+          <div class="flight-card-content">
+            <div class="flight-card-header">
+              <span class="route">
+                <%= flight[:source] %> → <%= flight[:destination] %>
+              </span>
+              <span class="flight-number">
+                Flight <%= flight[:flight_number] %>
+              </span>
+            </div>
+            <div class="flight-card-details">
+              <div class="inner-details">
+                <strong>Departure:</strong>
+                <%= flight[:date] %> at <%= flight[:departure_time] %>
+              </div>
+              <div class="inner-details">
+                <strong>Arrival:</strong>
+                <%= flight[:date] %> at <%= flight[:arrival_time] %>
+              </div>
+              <div class="inner-details">
+                <strong>Class:</strong>
+                <%= params[:class_type].humanize %>
+              </div>
+              <div class="inner-details">
+                <strong>Available Seats:</strong>
+                <%= flight["#{params[:class_type]}_seats".to_sym] %>
+              </div>
+            </div>
+            <div class="flight-card-footer">
+              <div class="fare inner-details">
+                Total Fare for <%= params[:passengers] %> passenger(s):
+                <span class="fare-amount">
+                  $<%= sprintf('%.2f', flight[:total_fare]) %>
+                </span>
+                <div>
+                  (Price per person: $<%= sprintf('%.2f', flight[:price_per_person]) %>)
+                </div>
+              </div>
+              <button class="button-primary">Book Now</button>
             </div>
           </div>
-          <button class="button-primary">Book Now</button>
         </div>
-      </div>
-      <% end %> <% end %>
-    </div>
-  </body>
+      <% end %>
+    <% end %>
+  </div>
+
+</body>
 </html>
