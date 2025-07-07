@@ -10,12 +10,25 @@ class FlightsController < ApplicationController
     destination = params[:destination]
     date = params[:date]
     passengers = params[:passengers].to_i
+    class_type = params[:class_type]
     flights = read_flights
     @matching_flights = flights.select do |flight|
+      seats_available =
+        case class_type
+        when "economy"
+          flight[:economy_seats]
+        when "business"
+          flight[:business_seats]
+        when "first_class"
+          flight[:first_class_seats]
+        else
+          0
+        end
+
       flight[:source].casecmp?(source) &&
       flight[:destination].casecmp?(destination) &&
       flight[:date] == date &&
-      flight[:total_seats].to_i > passengers
+      seats_available >= passengers
     end
     flash.now[:alert] = "No Flights Available" if @matching_flights.empty?
     render :index
