@@ -21,13 +21,28 @@ class FlightsController < ApplicationController
     end
 
     flights = read_flights
+    price_multiplier = 1.0
     @matching_flights = flights.select do |flight|
+      seats_available, price_multiplier =
+        case class_type
+        when "economy"
+            [ flight[:economy_seats], 1.0 ]
+        when "business"
+            [ flight[:business_seats], 1.5 ]
+        when "first_class"
+            [ flight[:first_class_seats], 2.0 ]
+        else
+            [ 0, 1.0 ]
+        end
+
       flight[:source].casecmp?(source) &&
       flight[:destination].casecmp?(destination) &&
       flight[:date] == date &&
-      flight[:total_seats].to_i > passengers
+      seats_available >= passengers
     end
-
+    .map do |flight|
+        total_fare = flight[:price] * price_multiplier * passengers
+        flight.merge(total_fare: total_fare)
     flash.now[:alert] = "No Flights Available" if @matching_flights.empty?
     render :index
   end

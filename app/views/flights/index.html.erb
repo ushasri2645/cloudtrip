@@ -162,16 +162,23 @@
     </datalist>
             
 
-        <div class="form-group half">
-          <div>
-            <%= f.label :date, "Departure Date :" %>
-            <%= f.date_field :date, placeholder: "YYYY-MM-DD" %>
-          </div>
-          <div>
-            <%= f.label :passengers, "Number of Passengers :" %>
-            <%= f.number_field :passengers, min: 1, placeholder: "1" %>
-          </div>
+      <div class="form-group half">
+        <div>
+          <%= f.label :date, "Departure Date :" %> <%= f.date_field :date,
+          placeholder: "YYYY-MM-DD" %>
         </div>
+        <div>
+          <%= f.label :passengers, "Number of Passengers :" %> <%=
+          f.number_field :passengers, min: 1, placeholder: "1" %>
+        </div>
+      </div>
+      <div class="form-group half">
+        <div>
+          <%= f.label :class_type, "Class Type :" %> <%= f.select :class_type,
+          [["Economy", "economy"], ["Business", "business"], ["First Class",
+          "first_class"]], prompt: "Select Class" %>
+        </div>
+      </div>
 
         <%= f.submit "Search Flights", class: "button-primary" %>
       <% end %>
@@ -183,49 +190,46 @@
       <% if @matching_flights.present? %>
         <h2 class="header-text">Flight Search Results</h2>
 
-        <% @matching_flights.each do |flight| %>
-          <div class="flight-card">
-            <div class="flight-card-header">
-              <span class="route">
-                <%= flight[:source] %> to <%= flight[:destination] %>
-              </span>
-              <span class="flight-number header-lg">
-                Flight <%= flight[:flight_number] %>
-              </span>
-            </div>
+      <% @matching_flights.each do |flight| %>
+      <div class="flight-card">
+        <div class="flight-card-header">
+          <span class="route">
+            <%= flight[:source] %> to <%= flight[:destination] %>
+          </span>
+          <span class="flight-number header-lg">
+            Flight <%= flight[:flight_number] %>
+          </span>
+        </div>
 
-            <div class="flight-card-details">
-              <div class="inner-details">
-                <strong>Departure:</strong>
-                <%= flight[:date] %> at <%= flight[:departure_time] %>
-              </div>
-              <div class="inner-details">
-                <strong>Arrival:</strong>
-                <%= flight[:date] %> at <%= flight[:arrival_time] %>
-              </div>
-              <div class="inner-details">
-                <strong>Class:</strong>
-                First Class
-              </div>
-              <div class="inner-details">
-                <strong>Available Seats:</strong>
-                <%= flight[:first_class_seats] %>
-              </div>
-            </div>
-
-            <div class="flight-card-footer">
-              <% total = flight[:price] * params[:passengers].to_i %>
-              <div class="fare inner-details">
-                Total Fare for <%= params[:passengers] %> passenger(s):
-                <span class="fare-amount">
-                  $<%= sprintf('%.2f', total) %>
-                </span>
-              </div>
-              <button class="button-primary">Book Now</button>
-            </div>
+        <div class="flight-card-details">
+          <div class="inner-details">
+            <strong>Departure:</strong>
+            <%= flight[:date] %> at <%= flight[:departure_time] %>
           </div>
-        <% end %>
-      <% end %>
+          <div class="inner-details">
+            <strong>Arrival:</strong>
+            <%= flight[:date] %> at <%= flight[:arrival_time] %>
+          </div>
+          <div class="inner-details">
+            <strong>Class:</strong>
+            <%= params[:class_type] %>
+          </div>
+          <div class="inner-details">
+            <strong>Available Seats:</strong>
+            <%= flight["#{params[:class_type]}_seats".to_sym] %>
+          </div>
+        </div>
+
+        <div class="flight-card-footer">
+          <% total = flight[:price] * params[:passengers].to_i %>
+          <div class="fare inner-details">
+            Total Fare for <%= params[:passengers] %> passenger(s):
+          <span class="fare-amount"> $<%= sprintf('%.2f', flight[:total_fare]) %> </span>
+          </div>
+          <button class="button-primary">Book Now</button>
+        </div>
+      </div>
+      <% end %> <% end %>
     </div>
   </body>
 </html>
