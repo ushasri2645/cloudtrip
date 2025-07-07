@@ -6,15 +6,15 @@ RSpec.describe "Flights", type: :request do
   before do
     FileUtils.mkdir_p(data_path.dirname)
     File.write(data_path, <<~DATA)
-      F101,Bangalore,London,2025-07-04,03:23 PM,09:23 PM,100,500,50,30,20,50,30,20
-      F102,Bangalore,New York,2025-07-04,05:00 AM,02:00 PM,100,900,5,3,2,5,3,2
-      F103,Chennai,London,2025-07-05,10:00 AM,04:00 PM,50,600,20,20,10,20,20,10
+      F101,Bangalore,London,2025-07-12,03:23 PM,09:23 PM,100,500,50,30,20,50,30,20
+      F102,Bangalore,New York,2025-07-12,05:00 AM,02:00 PM,100,900,5,3,2,5,3,2
+      F103,Chennai,London,2025-07-12,10:00 AM,04:00 PM,50,600,20,20,10,20,20,10
     DATA
   end
   describe "POST /flights/search" do
     context "when matching flights exist" do
       it "returns matching flights in the response" do
-        post "/flights/search", params: { source: "Bangalore", destination: "London", date: "2025-07-04", class_type: "economy" }
+        post "/flights/search", params: { source: "Bangalore", destination: "London", date: "2025-07-12", class_type: "economy" }
 
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("Bangalore")
@@ -25,7 +25,7 @@ RSpec.describe "Flights", type: :request do
 
     context "when no matching flights exist" do
       it "shows flash alert" do
-        post "/flights/search", params: { source: "Mumbai", destination: "Paris", date: "2025-07-04" }
+        post "/flights/search", params: { source: "Mumbai", destination: "Paris", date: "2025-07-12" }
 
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("No Flights Available")
@@ -34,7 +34,7 @@ RSpec.describe "Flights", type: :request do
 
     context "case-insensitive matching" do
       it "matches source and destination regardless of case" do
-        post "/flights/search", params: { source: "bangalore", destination: "london", date: "2025-07-04", class_type: "economy" }
+        post "/flights/search", params: { source: "bangalore", destination: "london", date: "2025-07-12", class_type: "economy" }
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("F101")
       end
@@ -45,7 +45,7 @@ RSpec.describe "Flights", type: :request do
         post "/flights/search", params: {
             source: "Bangalore",
             destination: "London",
-            date: "2025-07-04",
+            date: "2025-07-12",
             passengers: 150,
             class_type: "economy"
         }
@@ -61,7 +61,7 @@ RSpec.describe "Flights", type: :request do
         post "/flights/search", params: {
           source: "Bangalore",
           destination: "London",
-          date: "2025-07-04",
+          date: "2025-07-12",
           passengers: 10,
           class_type: "economy"
         }
@@ -74,7 +74,7 @@ RSpec.describe "Flights", type: :request do
         post "/flights/search", params: {
           source: "Bangalore",
           destination: "London",
-          date: "2025-07-04",
+          date: "2025-07-12",
           passengers: 60,
           class_type: "economy"
         }
@@ -90,7 +90,7 @@ RSpec.describe "Flights", type: :request do
         post "/flights/search", params: {
           source: "Bangalore",
           destination: "London",
-          date: "2025-07-04",
+          date: "2025-07-12",
           passengers: 10,
           class_type: "business"
         }
@@ -103,7 +103,7 @@ RSpec.describe "Flights", type: :request do
         post "/flights/search", params: {
           source: "Bangalore",
           destination: "London",
-          date: "2025-07-04",
+          date: "2025-07-12",
           passengers: 35,
           class_type: "business"
         }
@@ -119,7 +119,7 @@ RSpec.describe "Flights", type: :request do
         post "/flights/search", params: {
           source: "Bangalore",
           destination: "London",
-          date: "2025-07-04",
+          date: "2025-07-12",
           passengers: 10,
           class_type: "first_class"
         }
@@ -132,7 +132,7 @@ RSpec.describe "Flights", type: :request do
         post "/flights/search", params: {
           source: "Bangalore",
           destination: "London",
-          date: "2025-07-04",
+          date: "2025-07-12",
           passengers: 25,
           class_type: "first_class"
         }
@@ -149,13 +149,13 @@ RSpec.describe "Flights", type: :request do
           post "/flights/search", params: {
           source: "Bangalore",
           destination: "London",
-          date: "2025-07-04",
+          date: "2025-07-12",
           passengers: 2,
           class_type: "first_class"
           }
 
           expect(response).to have_http_status(:ok)
-          expect(response.body).to include("$2000.00")
+          expect(response.body).to include("$2200.00")
       end
     end
 
@@ -164,7 +164,7 @@ RSpec.describe "Flights", type: :request do
         post "/flights/search", params: {
           source: "Chennai",
           destination: "Chennai",
-          date: "2025-07-04",
+          date: "2025-07-12",
           passengers: 1
         }
 

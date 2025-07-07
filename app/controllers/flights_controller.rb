@@ -53,12 +53,12 @@ class FlightsController < ApplicationController
       dynamic_price = DynamicPricingService.calculate_price(
         flight[:price],
         total_seats,
-        available_seats
+        available_seats,
+        flight[:date]
       )
 
       price_per_person = (dynamic_price - flight[:price])  + (flight[:price] * price_multiplier)
       total_fare = price_per_person * passengers
-
 
       flight.merge(
         total_fare: total_fare,

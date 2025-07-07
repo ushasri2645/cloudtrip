@@ -1,19 +1,38 @@
 class DynamicPricingService
-  def self.calculate_price(base_price, total_seats, available_seats)
+  def self.calculate_price(base_price, total_seats, available_seats, flight_date_str)
     seats_sold = total_seats - available_seats
-    sold_percentage = (seats_sold.to_f / total_seats) * 100
+    return base_price if total_seats.zero?
 
-    multiplier =
-      if sold_percentage <= 30
+    seat_ratio = seats_sold.to_f / total_seats
+    Rails.logger.debug { "Seats sold: #{seats_sold}, Total seats: #{total_seats}, Seat ratio: #{seat_ratio}" }
+
+    seat_multiplier =
+      if seat_ratio <= 0.3
         1.0
-      elsif sold_percentage <= 50
+      elsif seat_ratio <= 0.5
         1.2
-      elsif sold_percentage <= 75
+      elsif seat_ratio <= 0.8
         1.35
       else
         1.5
       end
 
-    (base_price * multiplier).round(2)
+    seat_based_dynamic_price = base_price * seat_multiplier
+    date_based_dynamic_price = 0.0
+    flight_date = Date.parse(flight_date_str) rescue nil
+    if flight_date
+      days_left = (flight_date - Time.zone.today).to_i
+      Rails.logger.debug { "Days left until flight: #{days_left}" }
+
+      if days_left <= 15 && days_left >= 3
+        date_based_dynamic_price = base_price * (0.02 * (15 - days_left))
+      elsif days_left < 3
+        date_based_dynamic_price = base_price * (0.10 * (3 - days_left))
+      end
+    end
+    Rails.logger.debug { "Seat adjusted price: #{seat_based_dynamic_price}, Date adjustment: #{date_based_dynamic_price}" }
+    final_price = seat_based_dynamic_price + date_based_dynamic_price
+    Rails.logger.debug { "Final price calculated: #{final_price}" }
+    final_price
   end
 end
