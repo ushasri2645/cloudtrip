@@ -11,6 +11,7 @@ class FlightsController < ApplicationController
     destination = params[:destination]
     date = params[:date]
     passengers = params[:passengers].to_i
+    class_type = params[:class_type]
 
     @destination_options = @cities.reject { |city| city.casecmp?(source.to_s) }
 
