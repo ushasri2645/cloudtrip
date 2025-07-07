@@ -32,16 +32,6 @@ RSpec.describe "Flights", type: :request do
       end
     end
 
-    context "when seats are zero" do
-      it "does not return flights with 0 seats" do
-        post "/flights/search", params: { source: "Bangalore", destination: "New York", date: "2025-07-04" }
-
-        expect(response).to have_http_status(:ok)
-        expect(response.body).to include("No Flights Available")
-        expect(response.body).not_to include("F102")
-      end
-    end
-
     context "case-insensitive matching" do
       it "matches source and destination regardless of case" do
         post "/flights/search", params: { source: "bangalore", destination: "london", date: "2025-07-04" }
@@ -51,32 +41,105 @@ RSpec.describe "Flights", type: :request do
     end
 
     context "when passenger count is greater than available seats" do
-    it "does not return the flight" do
-      post "/flights/search", params: {
-        source: "Bangalore",
-        destination: "London",
-        date: "2025-07-04",
-        passengers: 150
-      }
+        it "does not return the flight" do
+        post "/flights/search", params: {
+            source: "Bangalore",
+            destination: "London",
+            date: "2025-07-04",
+            passengers: 150
+        }
 
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include("No Flights Available")
-      expect(response.body).not_to include("F101")
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("No Flights Available")
+        expect(response.body).not_to include("F101")
+        end
     end
-  end
 
-  context "when passenger count is within available seats" do
-    it "returns the flight" do
-      post "/flights/search", params: {
-        source: "Bangalore",
-        destination: "London",
-        date: "2025-07-04",
-        passengers: 3
-      }
+    context "when searching for economy class flights" do
+      it "returns flights with enough economy seats" do
+        post "/flights/search", params: {
+          source: "Bangalore",
+          destination: "London",
+          date: "2025-07-04",
+          passengers: 10,
+          class_type: "economy"
+        }
 
-      expect(response).to have_http_status(:ok)
-      expect(response.body).to include("F101")
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("F101")
+      end
+
+      it "does not return flights if not enough economy seats" do
+        post "/flights/search", params: {
+          source: "Bangalore",
+          destination: "London",
+          date: "2025-07-04",
+          passengers: 60,
+          class_type: "economy"
+        }
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("No Flights Available")
+        expect(response.body).not_to include("F101")
+      end
     end
-  end
+
+    context "when searching for business class flights" do
+      it "returns flights with enough business seats" do
+        post "/flights/search", params: {
+          source: "Bangalore",
+          destination: "London",
+          date: "2025-07-04",
+          passengers: 10,
+          class_type: "business"
+        }
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("F101")
+      end
+
+      it "does not return flights if not enough business seats" do
+        post "/flights/search", params: {
+          source: "Bangalore",
+          destination: "London",
+          date: "2025-07-04",
+          passengers: 35,
+          class_type: "business"
+        }
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("No Flights Available")
+        expect(response.body).not_to include("F101")
+      end
+    end
+
+    context "when searching for first class flights" do
+      it "returns flights with enough first class seats" do
+        post "/flights/search", params: {
+          source: "Bangalore",
+          destination: "London",
+          date: "2025-07-04",
+          passengers: 10,
+          class_type: "first_class"
+        }
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("F101")
+      end
+
+      it "does not return flights if not enough first class seats" do
+        post "/flights/search", params: {
+          source: "Bangalore",
+          destination: "London",
+          date: "2025-07-04",
+          passengers: 25,
+          class_type: "first_class"
+        }
+
+        expect(response).to have_http_status(:ok)
+        expect(response.body).to include("No Flights Available")
+        expect(response.body).not_to include("F101")
+      end
+    end
   end
 end
