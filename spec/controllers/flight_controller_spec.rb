@@ -141,5 +141,21 @@ RSpec.describe "Flights", type: :request do
         expect(response.body).not_to include("F101")
       end
     end
+
+
+    context "when searching for first class flights" do
+      it "calculates the correct total fare" do
+          post "/flights/search", params: {
+          source: "Bangalore",
+          destination: "London",
+          date: "2025-07-04",
+          passengers: 2,
+          class_type: "first_class"
+          }
+
+          expect(response).to have_http_status(:ok)
+          expect(response.body).to include("$2000.00")
+      end
+    end
   end
 end
