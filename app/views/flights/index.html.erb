@@ -204,9 +204,14 @@
 
         <div class="flight-card-footer">
           <% total = flight[:price] * params[:passengers].to_i %>
-          <div class="fare inner-details">
+         <div class="fare inner-details">
             Total Fare for <%= params[:passengers] %> passenger(s):
-          <span class="fare-amount"> $<%= sprintf('%.2f', flight[:total_fare]) %> </span>
+            <span class="fare-amount">
+              $<%= sprintf('%.2f', flight[:total_fare]) %>
+            </span>
+            <div>
+              (Price per person: $<%= sprintf('%.2f', flight[:price_per_person]) %>)  
+            </div>
           </div>
           <button class="button-primary">Book Now</button>
         </div>
