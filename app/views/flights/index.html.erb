@@ -288,14 +288,15 @@
             </div>
             <div class="flight-card-details">
               
-              <div class="inner-details">
-                <strong>Arrival:</strong>
-                <%= flight[:date] %> at <%= flight[:arrival_time] %>
-              </div>
-              <div class="inner-details">
+            <div class="inner-details">
                 <strong>Departure:</strong>
                 <%= flight[:departure_date] %> at <%= flight[:departure_time] %>
               </div>
+              <div class="inner-details">
+                <strong>Arrival:</strong>
+                <%= flight[:arrival_date] %> at <%= flight[:arrival_time] %>
+              </div>
+              
               <div class="inner-details">
                 <strong>Class:</strong>
                 <%= flight[:class_type] %>
