@@ -6,9 +6,9 @@ RSpec.describe "Flights", type: :request do
   before(:each) do
     FileUtils.mkdir_p(DATA_PATH.dirname)
     File.write(DATA_PATH, <<~DATA)
-      F101,Bangalore,London,2025-07-12,03:23 PM,09:23 PM,100,500,50,30,20,50,30,20
-      F102,Bangalore,New York,2025-07-12,05:00 AM,02:00 PM,0,900,5,3,2,5,3,2
-      F103,Chennai,London,2025-07-12,10:00 AM,04:00 PM,50,600,20,20,10,20,20,10
+      F101,Bangalore,London,2025-07-12,03:23 PM,2025-07-13,09:23 AM,100,500,50,30,20,50,30,20
+      F102,Bangalore,New York,2025-07-04,03:23 PM,2025-07-12,09:23 PM,10,900,5,3,2,5,3,2
+      F103,Chennai,London,2025-07-05,03:23 PM,2025-07-12,09:23 PM,50,600,20,20,10,20,20,10
     DATA
   end
 
@@ -42,7 +42,8 @@ RSpec.describe "Flights", type: :request do
     it "shows 'No Flights Available' if none found" do
       post "/flights/search", params: {
         source: "Mumbai",
-        destination: "Paris"
+        destination: "Paris",
+        date: "2025-07-12"
       }
       expect(response).to have_http_status(:success)
       expect(response.body).to include("No Flights Available")
