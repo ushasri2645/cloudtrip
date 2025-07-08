@@ -217,11 +217,11 @@
       <div class="form-group half">
         <div>
           <%= f.label :source, "Origin:" %>
-          <%= f.text_field :source, id: "source-input", list: "source-list", value: params[:source] %>
+          <%= f.text_field :source, id: "source-input", list: "source-list", value: params[:source], required: true %>
         </div>
         <div>
           <%= f.label :destination, "Destination:" %>
-          <%= f.text_field :destination, id: "destination-input", list: "destination-list", value: params[:destination] %>
+          <%= f.text_field :destination, id: "destination-input", list: "destination-list", value: params[:destination],required: true %>
         </div>
       </div>
 
@@ -240,7 +240,7 @@
       <div class="form-group half">
         <div>
           <%= f.label :date, "Departure Date:" %>
-          <%= f.date_field :date, placeholder: "YYYY-MM-DD", value: params[:date] %>
+          <%= f.date_field :date, placeholder: "YYYY-MM-DD", value: params[:date], required: true, min: Date.today.strftime("%Y-%m-%d")%>
         </div>
         <div>
           <%= f.label :passengers, "Number of Passengers:" %>
@@ -281,21 +281,22 @@
               </span>
             </div>
             <div class="flight-card-details">
-              <div class="inner-details">
-                <strong>Departure:</strong>
-                <%= flight[:date] %> at <%= flight[:departure_time] %>
-              </div>
+              
               <div class="inner-details">
                 <strong>Arrival:</strong>
                 <%= flight[:date] %> at <%= flight[:arrival_time] %>
               </div>
               <div class="inner-details">
+                <strong>Departure:</strong>
+                <%= flight[:departure_date] %> at <%= flight[:departure_time] %>
+              </div>
+              <div class="inner-details">
                 <strong>Class:</strong>
-                <%= params[:class_type].humanize %>
+                <%= flight[:class_type] %>
               </div>
               <div class="inner-details">
                 <strong>Available Seats:</strong>
-                <%= flight["#{params[:class_type]}_seats".to_sym] %>
+                <%= flight["#{flight[:class_type]}_seats".to_sym] %>
               </div>
             </div>
             <div class="flight-card-footer">
