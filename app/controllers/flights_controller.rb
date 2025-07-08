@@ -8,16 +8,16 @@ class FlightsController < ApplicationController
 
   def search
     @cities = load_unique_cities
-
     source = params[:source]
     destination = params[:destination]
     date = params[:date]
+
     if source.blank? || destination.blank? || date.blank?
       flash.now[:alert] = "Please enter Source, Destination, and Date."
       @matching_flights = []
-      @destination_options = @cities.reject { |city| city.casecmp?(source.to_s) }
       return render :index
     end
+
     passengers = params[:passengers].present? ? params[:passengers].to_i : 1
     if params[:class_type].blank?
       class_type = "economy"
@@ -26,27 +26,26 @@ class FlightsController < ApplicationController
       class_type = params[:class_type]
     end
 
-    @destination_options = @cities.reject { |city| city.casecmp?(source.to_s) }
-
     if source.present? && destination.present? && source.casecmp?(destination)
-    flash.now[:alert] = "Origin and Destination must be different."
-    @matching_flights = []
-    return render :index
+      flash.now[:alert] = "Origin and Destination must be different."
+      @matching_flights = []
+      return render :index
     end
 
     flights = read_flights
     price_multiplier = 1.0
+
     @matching_flights = flights.select do |flight|
       seats_available, price_multiplier =
         case class_type
-        when "economy"
-            [ flight[:economy_seats], 1.0 ]
-        when "business"
-            [ flight[:business_seats], 1.5 ]
-        when "first_class"
-            [ flight[:first_class_seats], 2.0 ]
-        else
-            [ flight[:economy_seats], 1.0 ]
+          when "economy"
+              [ flight[:economy_seats], 1.0 ]
+          when "business"
+              [ flight[:business_seats], 1.5 ]
+          when "first_class"
+              [ flight[:first_class_seats], 2.0 ]
+          else
+              [ flight[:economy_seats], 1.0 ]
         end
 
       flight[:source].casecmp?(source) &&
@@ -71,7 +70,7 @@ class FlightsController < ApplicationController
         flight[:departure_date]
       )
 
-      price_per_person = (dynamic_price - flight[:price])  + (flight[:price] * price_multiplier)
+      price_per_person = (dynamic_price) + (flight[:price] * price_multiplier)
       total_fare = price_per_person * passengers
 
       flight.merge(
