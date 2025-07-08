@@ -12,8 +12,19 @@ class FlightsController < ApplicationController
     source = params[:source]
     destination = params[:destination]
     date = params[:date]
-    passengers = params[:passengers].to_i
-    class_type = params[:class_type]
+    if source.blank? || destination.blank? || date.blank?
+      flash.now[:alert] = "Please enter Source, Destination, and Date."
+      @matching_flights = []
+      @destination_options = @cities.reject { |city| city.casecmp?(source.to_s) }
+      return render :index
+    end
+    passengers = params[:passengers].present? ? params[:passengers].to_i : 1
+    if params[:class_type].blank?
+      class_type = "economy"
+      flash.now[:alert] = "Class type not selected. Defaulting to Economy class."
+    else
+      class_type = params[:class_type]
+    end
 
     @destination_options = @cities.reject { |city| city.casecmp?(source.to_s) }
 
@@ -34,6 +45,8 @@ class FlightsController < ApplicationController
             [ flight[:business_seats], 1.5 ]
         when "first_class"
             [ flight[:first_class_seats], 2.0 ]
+        else
+            [ flight[:economy_seats], 1.0 ]
         end
 
       flight[:source].casecmp?(source) &&
@@ -48,6 +61,7 @@ class FlightsController < ApplicationController
         when "economy"     then flight[:economy_total]
         when "business"    then flight[:business_total]
         when "first_class" then flight[:first_class_total]
+        else flight[:economy_total]
         end
 
       dynamic_price = DynamicPricingService.calculate_price(
@@ -63,7 +77,8 @@ class FlightsController < ApplicationController
       flight.merge(
         total_fare: total_fare,
         price_per_seat: dynamic_price,
-        price_per_person: price_per_person
+        price_per_person: price_per_person,
+        class_type: class_type || "economy"
       )
     end
 
@@ -82,15 +97,16 @@ class FlightsController < ApplicationController
         destination: fields[2],
         date: fields[3],
         arrival_time: fields[4],
-        departure_time: fields[5],
-        total_seats: fields[6].to_i,
-        price: fields[7].to_f,
-        economy_seats: fields[8].to_i,
-        business_seats: fields[9].to_i,
-        first_class_seats: fields[10].to_i,
-        economy_total: fields[11].to_i,
-        business_total: fields[12].to_i,
-        first_class_total: fields[13].to_i
+        departure_date: fields[5],
+        departure_time: fields[6],
+        total_seats: fields[7].to_i,
+        price: fields[8].to_f,
+        economy_seats: fields[9].to_i,
+        business_seats: fields[10].to_i,
+        first_class_seats: fields[11].to_i,
+        economy_total: fields[12].to_i,
+        business_total: fields[13].to_i,
+        first_class_total: fields[14].to_i
       }
     end
   end
