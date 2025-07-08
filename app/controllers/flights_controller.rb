@@ -38,13 +38,13 @@ class FlightsController < ApplicationController
     @matching_flights = flights.select do |flight|
       seats_available, price_multiplier =
         case class_type
-          when "economy"
+        when "economy"
               [ flight[:economy_seats], 1.0 ]
-          when "business"
+        when "business"
               [ flight[:business_seats], 1.5 ]
-          when "first_class"
+        when "first_class"
               [ flight[:first_class_seats], 2.0 ]
-          else
+        else
               [ flight[:economy_seats], 1.0 ]
         end
 
