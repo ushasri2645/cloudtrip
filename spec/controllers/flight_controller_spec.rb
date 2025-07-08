@@ -6,10 +6,10 @@ RSpec.describe "Flights", type: :request do
   before do
     FileUtils.mkdir_p(data_path.dirname)
     File.write(data_path, <<~DATA)
-      F101,Bangalore,London,2025-07-12,03:23 PM,09:23 PM,100,500,50,30,20,50,30,20
-      F102,Bangalore,New York,2025-07-12,05:00 AM,02:00 PM,100,900,5,3,2,5,3,2
-      F103,Chennai,London,2025-07-12,10:00 AM,04:00 PM,50,600,20,20,10,20,20,10
-    DATA
+      F101,Bangalore,London,2025-07-12,03:23 PM,2025-07-13,09:23 AM,100,500,50,30,20,50,30,20
+      F102,Bangalore,New York,2025-07-04,03:23 PM,2025-07-12,09:23 PM,10,900,5,3,2,5,3,2
+      F103,Chennai,London,2025-07-05,03:23 PM,2025-07-12,09:23 PM,50,600,20,20,10,20,20,10
+DATA
   end
   describe "POST /flights/search" do
     context "when matching flights exist" do
