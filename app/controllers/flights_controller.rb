@@ -51,7 +51,7 @@ class FlightsController < ApplicationController
 
       flight[:source].casecmp?(source) &&
       flight[:destination].casecmp?(destination) &&
-      flight[:date] == date &&
+      flight[:departure_date] == date &&
       seats_available >= passengers
     end.map do |flight|
       seat_key = "#{class_type}_seats".to_sym
@@ -68,7 +68,7 @@ class FlightsController < ApplicationController
         flight[:price],
         total_seats,
         available_seats,
-        flight[:date]
+        flight[:departure_date]
       )
 
       price_per_person = (dynamic_price - flight[:price])  + (flight[:price] * price_multiplier)
@@ -95,10 +95,10 @@ class FlightsController < ApplicationController
         flight_number: fields[0],
         source: fields[1],
         destination: fields[2],
-        date: fields[3],
-        arrival_time: fields[4],
-        departure_date: fields[5],
-        departure_time: fields[6],
+        departure_date: fields[3],
+        departure_time: fields[4],
+        arrival_date: fields[5],
+        arrival_time: fields[6],
         total_seats: fields[7].to_i,
         price: fields[8].to_f,
         economy_seats: fields[9].to_i,
