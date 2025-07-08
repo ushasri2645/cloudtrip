@@ -251,7 +251,7 @@
       </datalist>
 
       <datalist id="destination-list">
-        <% (@destination_options || @cities).each do |city| %>
+        <% @cities.each do |city| %>
           <option value="<%= city %>">
         <% end %>
       </datalist>
