@@ -11,6 +11,7 @@
       display:'flex';
       flex-direction:'column';
     }
+
     .hero {
       position: relative;
     width: 100vw;
@@ -24,7 +25,6 @@
       color: white;
       font-family: var(--font-family-inter);
     }
-
 
     .hero::after {
       content: "";
@@ -203,6 +203,70 @@
       font-weight: 700;
     }
 
+    .trip-selection {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .radio-option {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    .radio-option input[type="radio"] {
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 1.5px solid black;
+      border-radius: 50%;
+      background-color: #fff;
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      cursor: pointer;
+      outline: none;
+      margin: 0;
+      padding: 0;
+      transition: all 0.2s ease;
+    }
+
+    .radio-option input[type="radio"]::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      background-color: #eba06b;
+      border-radius: 50%;
+      transform: scale(0);
+      transition: transform 0.2s ease;
+    }
+
+    .travel-info-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .travel-info-row > div {
+      flex: 1;
+      min-width: 200px;
+    }
+    .return-date-field {
+      display: none;
+    }
+
+    .radio-option input[type="radio"]:checked::before {
+      transform: scale(1);
+    }
+
     @media (max-width: 600px) {
       .hero h1 {
         font-size: 2rem;
@@ -232,6 +296,21 @@
     </p>
 
     <%= form_with url: flights_search_path, method: :post, local: true, data: { turbo: false } do |f| %>
+      <% selected_trip_type = params[:trip_type] || "one_way" %>
+      <% is_round_trip = selected_trip_type == "round_trip" %>
+
+      <div class="form-group half trip-selection">
+        <label class="radio-option">
+          <%= radio_button_tag :trip_type, "one_way", selected_trip_type == "one_way" %>
+          One Way
+        </label>
+
+        <label class="radio-option">
+          <%= radio_button_tag :trip_type, "round_trip", selected_trip_type == "round_trip" %>
+          Round Trip
+        </label>
+      </div>
+
       <div class="form-group half">
         <div>
           <%= f.label :source, "Origin:" %>
@@ -255,16 +334,25 @@
         <% end %>
       </datalist>
 
-      <div class="form-group half">
+      <div class="form-group half" id="travel-info-row">
         <div>
           <%= f.label :date, "Departure Date:" %>
-          <%= f.date_field :date, placeholder: "YYYY-MM-DD", value: params[:date], required: true, min: Date.today.strftime("%Y-%m-%d")%>
+          <%= f.date_field :date, id: "date", value: params[:date], required: true, min: Date.today.strftime("%Y-%m-%d") %>
         </div>
+
+        <div class="return-date-field">
+          <%= f.label :return_date, "Return Date:" %>
+          <%= f.date_field :return_date,
+              value: params[:return_date],
+              min: params[:date].presence || Date.today.strftime("%Y-%m-%d") %>
+        </div>
+
         <div>
           <%= f.label :passengers, "Number of Passengers:" %>
           <%= f.number_field :passengers, min: 1, placeholder: "1", value: params[:passengers] %>
         </div>
       </div>
+
       <div class="form-group half">
         <div>
           <%= f.label :class_type, "Class Type:" %>
@@ -298,24 +386,22 @@
                 Flight <%= flight[:flight_number] %>
               </span>
             </div>
-            <div class="flight-card-details">
-              
-            <div class="inner-details">
-                <strong>Departure:</strong>
-                <%= flight[:departure_date] %> at <%= flight[:departure_time] %>
+            <div class="flight-card-details">  
+              <div class="inner-details">
+                  <strong>Departure:</strong>
+                  <%= flight[:departure_date] %> at <%= flight[:departure_time] %>
+                </div>
+              <div class="inner-details">
+                  <strong>Arrival:</strong>
+                  <%= flight[:arrival_date] %> at <%= flight[:arrival_time] %>
+              </div>  
+              <div class="inner-details">
+                  <strong>Class:</strong>
+                  <%= flight[:class_type] %>
               </div>
               <div class="inner-details">
-                <strong>Arrival:</strong>
-                <%= flight[:arrival_date] %> at <%= flight[:arrival_time] %>
-              </div>
-              
-              <div class="inner-details">
-                <strong>Class:</strong>
-                <%= flight[:class_type] %>
-              </div>
-              <div class="inner-details">
-                <strong>Available Seats:</strong>
-                <%= flight["#{flight[:class_type]}_seats".to_sym] %>
+                  <strong>Available Seats:</strong>
+                  <%= flight["#{flight[:class_type]}_seats".to_sym] %>
               </div>
             </div>
             <div class="flight-card-footer">
@@ -334,7 +420,36 @@
         </div>
       <% end %>
     <% end %>
+
+    <% if @total_round_trip_fare.present? %>
+      <div style="margin-top: 2rem; font-size: 1.25rem; font-weight: 600; color: green; text-align: center;">
+        🎉 Total Round Trip Fare with 5% Discount: $<%= sprintf('%.2f', @total_round_trip_fare) %>
+      </div>
+    <% end %>
   </div>
 </div>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const roundTripRadio = document.querySelector('input[name="trip_type"][value="round_trip"]');
+    const oneWayRadio = document.querySelector('input[name="trip_type"][value="one_way"]');
+    const returnDateField = document.querySelector(".return-date-field");
+
+    function toggleReturnDateVisibility() {
+      if (roundTripRadio.checked) {
+        returnDateField.style.display = "block";
+      } else {
+        returnDateField.style.display = "none";
+      }
+    }
+
+    // Attach event listeners
+    roundTripRadio.addEventListener("change", toggleReturnDateVisibility);
+    oneWayRadio.addEventListener("change", toggleReturnDateVisibility);
+
+    // Initial call on load
+    toggleReturnDateVisibility();
+  });
+</script>
+
 </body>
 </html>
