@@ -180,7 +180,7 @@
       font-weight: 600;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
-    
+
     .inner-details {
       display: flex;
       flex-direction: column;
@@ -283,6 +283,7 @@
       }
     }
   </style>
+  
 </head>
 <body>
 <div class="top">
@@ -329,7 +330,7 @@
       </datalist>
 
       <datalist id="destination-list">
-        <% (@destination_options || @cities).each do |city| %>
+        <% @cities.each do |city| %>
           <option value="<%= city %>">
         <% end %>
       </datalist>
@@ -349,7 +350,7 @@
 
         <div>
           <%= f.label :passengers, "Number of Passengers:" %>
-          <%= f.number_field :passengers, min: 1, placeholder: "1", value: params[:passengers] %>
+          <%= f.number_field :passengers, min: 1, placeholder: "1", value: params[:passengers], max:4 %>
         </div>
       </div>
 
