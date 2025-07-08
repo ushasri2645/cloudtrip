@@ -240,7 +240,7 @@
       <div class="form-group half">
         <div>
           <%= f.label :date, "Departure Date:" %>
-          <%= f.date_field :date, placeholder: "YYYY-MM-DD", value: params[:date], required: true %>
+          <%= f.date_field :date, placeholder: "YYYY-MM-DD", value: params[:date], required: true, min: Date.today.strftime("%Y-%m-%d")%>
         </div>
         <div>
           <%= f.label :passengers, "Number of Passengers:" %>
