@@ -155,7 +155,7 @@ DATA
           }
 
           expect(response).to have_http_status(:ok)
-          expect(response.body).to include("$2200.00")
+          expect(response.body).to include("$2220.00")
       end
     end
 
