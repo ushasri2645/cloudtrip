@@ -44,7 +44,8 @@
     }
 
     .container {
-      max-width: 960px;
+      max-width: 100%;
+      width: 90%; 
       margin: -80px auto 3rem;
       background: #ffffff;
       border-radius: 1rem;
@@ -70,10 +71,13 @@
     }
 
     .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: flex-end;
+        gap: 1rem;
+        overflow-x: auto;
+        padding-bottom: 1rem;
+        margin-bottom: 2rem;
     }
 
     @media (min-width: 600px) {
@@ -115,6 +119,7 @@
     }
 
     .flight-card {
+      width: 100%;
       position: relative;
       border-radius: 1rem;
       overflow: hidden;
@@ -267,6 +272,26 @@
       transform: scale(1);
     }
 
+    .round-trip-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    
+
+    @media (max-width: 768px) {
+      .round-trip-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .round-trip-column {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
     @media (max-width: 600px) {
       .hero h1 {
         font-size: 2rem;
@@ -312,7 +337,7 @@
         </label>
       </div>
 
-      <div class="form-group half">
+      <div class="form-group full-row five-cols">
         <div>
           <%= f.label :source, "Origin:" %>
           <%= f.text_field :source, id: "source-input", list: "source-list", value: params[:source], required: true %>
@@ -321,6 +346,32 @@
           <%= f.label :destination, "Destination:" %>
           <%= f.text_field :destination, id: "destination-input", list: "destination-list", value: params[:destination],required: true %>
         </div>
+        <div>
+    <%= f.label :date, "Departure Date:" %>
+    <%= f.date_field :date, id: "date", value: params[:date], required: true, min: Date.today.strftime("%Y-%m-%d") %>
+  </div>
+
+  <div class="return-date-field">
+    <%= f.label :return_date, "Return Date:" %>
+    <%= f.date_field :return_date,
+      value: params[:return_date],
+      min: params[:date].presence || Date.today.strftime("%Y-%m-%d") %>
+  </div>
+
+  <div>
+    <%= f.label :passengers, "Number of Passengers:" %>
+    <%= f.number_field :passengers, min: 1, placeholder: "1", value: params[:passengers], max: 4 %>
+  </div>
+
+  <div>
+    <%= f.label :class_type, "Class Type:" %>
+    <%= f.select :class_type,
+      [["Economy", "economy"], ["Business", "business"], ["First Class", "first_class"]],
+      { prompt: "Select Class" },
+      { selected: params[:class_type] } %>
+  </div>
+        <%= f.submit "Search Flights", class: "button-primary" %>
+    <% end %>
       </div>
 
       <datalist id="source-list">
@@ -335,85 +386,89 @@
         <% end %>
       </datalist>
 
-      <div class="form-group half" id="travel-info-row">
-        <div>
-          <%= f.label :date, "Departure Date:" %>
-          <%= f.date_field :date, id: "date", value: params[:date], required: true, min: Date.today.strftime("%Y-%m-%d") %>
-        </div>
-
-        <div class="return-date-field">
-          <%= f.label :return_date, "Return Date:" %>
-          <%= f.date_field :return_date,
-              value: params[:return_date],
-              min: params[:date].presence || Date.today.strftime("%Y-%m-%d") %>
-        </div>
-
-        <div>
-          <%= f.label :passengers, "Number of Passengers:" %>
-          <%= f.number_field :passengers, min: 1, placeholder: "1", value: params[:passengers], max:4 %>
-        </div>
-      </div>
-
-      <div class="form-group half">
-        <div>
-          <%= f.label :class_type, "Class Type:" %>
-          <%= f.select :class_type,
-            [["Economy", "economy"], ["Business", "business"], ["First Class", "first_class"]],
-            { prompt: "Select Class" },
-            { selected: params[:class_type] } %>
-        </div>
-      </div>
-
-      <%= f.submit "Search Flights", class: "button-primary" %>
-    <% end %>
 
     <% if flash[:alert] %>
       <p class="flash-alert"><%= flash[:alert] %></p>
     <% end %>
 
-    <% if @matching_flights.present? %>
-      <h2 class="header-text" style="margin-top: 2rem; margin-bottom: 1rem; font-size: 2rem; color: var(--header-text);">
-        Flight Search Results
-      </h2>
+    <% if @return_flights.present? && @matching_flights.present? %>
+      <div class="round-trip-grid">
+        <!-- Column 1: Departure Flights -->
+        <div class="round-trip-column">
+          <h2 class="header-text" style="text-align:center;">Departure: <%= params[:source] %> → <%= params[:destination] %></h2>
+          <% @matching_flights.each do |flight| %>
+            <div class="flight-card">
+              <div class="flight-card-content">
+                <div class="flight-card-header">
+                  <span class="route"><%= flight[:source] %> → <%= flight[:destination] %></span>
+                  <span class="flight-number">Flight <%= flight[:flight_number] %></span>
+                </div>
+                <div class="flight-card-details">
+                  <div class="inner-details"><strong>Departure:</strong> <%= flight[:departure_date] %> at <%= flight[:departure_time] %></div>
+                  <div class="inner-details"><strong>Arrival:</strong> <%= flight[:arrival_date] %> at <%= flight[:arrival_time] %></div>
+                  <div class="inner-details"><strong>Class:</strong> <%= flight[:class_type] %></div>
+                  <div class="inner-details"><strong>Available Seats:</strong> <%= flight["#{flight[:class_type]}_seats".to_sym] %></div>
+                </div>
+                <div class="flight-card-footer">
+                  <div class="fare inner-details">
+                    Total Fare for <%= params[:passengers] %> passenger(s): <span class="fare-amount">$<%= sprintf('%.2f', flight[:total_fare]) %></span>
+                    <div>(Price per person: $<%= sprintf('%.2f', flight[:price_per_person]) %>)</div>
+                  </div>
+                  <button class="button-primary">Book Now</button>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
 
+        <!-- Column 2: Return Flights -->
+        <div class="round-trip-column">
+          <h2 class="header-text" style="text-align:center;">Return: <%= params[:destination] %> → <%= params[:source] %></h2>
+          <% @return_flights.each do |flight| %>
+            <div class="flight-card">
+              <div class="flight-card-content">
+                <div class="flight-card-header">
+                  <span class="route"><%= flight[:source] %> → <%= flight[:destination] %></span>
+                  <span class="flight-number">Flight <%= flight[:flight_number] %></span>
+                </div>
+                <div class="flight-card-details">
+                  <div class="inner-details"><strong>Departure:</strong> <%= flight[:departure_date] %> at <%= flight[:departure_time] %></div>
+                  <div class="inner-details"><strong>Arrival:</strong> <%= flight[:arrival_date] %> at <%= flight[:arrival_time] %></div>
+                  <div class="inner-details"><strong>Class:</strong> <%= flight[:class_type] %></div>
+                  <div class="inner-details"><strong>Available Seats:</strong> <%= flight["#{flight[:class_type]}_seats".to_sym] %></div>
+                </div>
+                <div class="flight-card-footer">
+                  <div class="fare inner-details">
+                    Total Fare for <%= params[:passengers] %> passenger(s): <span class="fare-amount">$<%= sprintf('%.2f', flight[:total_fare]) %></span>
+                    <div>(Price per person: $<%= sprintf('%.2f', flight[:price_per_person]) %>)</div>
+                  </div>
+                  <button class="button-primary">Book Now</button>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% elsif @matching_flights.present? %>
+      <!-- Fallback for One-Way -->
+      <h2 class="header-text" style="margin-top: 2rem;">Flight Search Results</h2>
       <% @matching_flights.each do |flight| %>
         <div class="flight-card">
           <div class="flight-card-content">
             <div class="flight-card-header">
-              <span class="route">
-                <%= flight[:source] %> → <%= flight[:destination] %>
-              </span>
-              <span class="flight-number">
-                Flight <%= flight[:flight_number] %>
-              </span>
+              <span class="route"><%= flight[:source] %> → <%= flight[:destination] %></span>
+              <span class="flight-number">Flight <%= flight[:flight_number] %></span>
             </div>
-            <div class="flight-card-details">  
-              <div class="inner-details">
-                  <strong>Departure:</strong>
-                  <%= flight[:departure_date] %> at <%= flight[:departure_time] %>
-                </div>
-              <div class="inner-details">
-                  <strong>Arrival:</strong>
-                  <%= flight[:arrival_date] %> at <%= flight[:arrival_time] %>
-              </div>  
-              <div class="inner-details">
-                  <strong>Class:</strong>
-                  <%= flight[:class_type] %>
-              </div>
-              <div class="inner-details">
-                  <strong>Available Seats:</strong>
-                  <%= flight["#{flight[:class_type]}_seats".to_sym] %>
-              </div>
+            <div class="flight-card-details">
+              <div class="inner-details"><strong>Departure:</strong> <%= flight[:departure_date] %> at <%= flight[:departure_time] %></div>
+              <div class="inner-details"><strong>Arrival:</strong> <%= flight[:arrival_date] %> at <%= flight[:arrival_time] %></div>
+              <div class="inner-details"><strong>Class:</strong> <%= flight[:class_type] %></div>
+              <div class="inner-details"><strong>Available Seats:</strong> <%= flight["#{flight[:class_type]}_seats".to_sym] %></div>
             </div>
             <div class="flight-card-footer">
               <div class="fare inner-details">
-                Total Fare for <%= params[:passengers] %> passenger(s):
-                <span class="fare-amount">
-                  $<%= sprintf('%.2f', flight[:total_fare]) %>
-                </span>
-                <div>
-                  (Price per person: $<%= sprintf('%.2f', flight[:price_per_person]) %>)
-                </div>
+                Total Fare for <%= params[:passengers] %> passenger(s): <span class="fare-amount">$<%= sprintf('%.2f', flight[:total_fare]) %></span>
+                <div>(Price per person: $<%= sprintf('%.2f', flight[:price_per_person]) %>)</div>
               </div>
               <button class="button-primary">Book Now</button>
             </div>
@@ -422,11 +477,7 @@
       <% end %>
     <% end %>
 
-    <% if @total_round_trip_fare.present? %>
-      <div style="margin-top: 2rem; font-size: 1.25rem; font-weight: 600; color: green; text-align: center;">
-        🎉 Total Round Trip Fare with 5% Discount: $<%= sprintf('%.2f', @total_round_trip_fare) %>
-      </div>
-    <% end %>
+
   </div>
 </div>
 <script>
