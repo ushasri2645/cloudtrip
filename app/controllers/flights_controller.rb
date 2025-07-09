@@ -48,10 +48,21 @@ class FlightsController < ApplicationController
               [ flight[:economy_seats], 1.0 ]
         end
 
+        time_condition = true
+
+        if Date.parse(date) == Time.zone.today
+          now = Time.zone.now
+          flight_datetime_str = "#{flight[:departure_date]} #{flight[:departure_time]}"
+          flight_time = Time.strptime(flight_datetime_str, "%Y-%m-%d %I:%M %p")
+          time_condition = flight_time > now
+        end
+
       flight[:source].casecmp?(source) &&
       flight[:destination].casecmp?(destination) &&
       flight[:departure_date] == date &&
-      seats_available >= passengers
+      seats_available >= passengers &&
+      time_condition
+      
     end.map do |flight|
       seat_key = "#{class_type}_seats".to_sym
       available_seats = flight[seat_key]
