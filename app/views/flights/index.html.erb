@@ -14,8 +14,8 @@
 
     .hero {
       position: relative;
-    width: 100vw;
-    max-width: 100%;
+      width: 100vw;
+      max-width: 100%;
       height: 400px;
       background: url('https://66.media.tumblr.com/51d284ac08537c871892eea7ecb5d647/tumblr_o6in6mGzxr1ud7phlo1_500.gif') center center / cover no-repeat;
       display: flex;
@@ -78,6 +78,7 @@
         overflow-x: auto;
         padding-bottom: 1rem;
         margin-bottom: 2rem;
+        margin-top: 2rem;
     }
 
     @media (min-width: 600px) {
@@ -337,6 +338,10 @@
         </label>
       </div>
 
+      <div id="round-trip-discount" style="display: none margin-bottom: 10px;">
+        <p style="font-weight: bold; text-align:center; color:blue">🎉 We have a 5% discount for a round trip! 🎉</p>
+      </div>
+
       <div class="form-group full-row five-cols">
         <div>
           <%= f.label :source, "Origin:" %>
@@ -394,8 +399,6 @@
       <% end %>
 
     <% if @return_flights.present? && @matching_flights.present? %>
-    <p style="font-weight: bold; text-align:center;">🎉 You got a 5% discount for selecting a round trip!</p>
-    <p style="text-align:center; font-size: 1.1rem;">Total Round Trip Fare: $<%= sprintf('%.2f', @total_round_trip_fare) %></p>
       <div class="round-trip-grid">
         <!-- Column 1: Departure Flights -->
         <div class="round-trip-column">
@@ -486,23 +489,22 @@
   </div>
 </div>
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
+   document.addEventListener("DOMContentLoaded", function () {
     const roundTripRadio = document.querySelector('input[name="trip_type"][value="round_trip"]');
     const oneWayRadio = document.querySelector('input[name="trip_type"][value="one_way"]');
     const returnDateField = document.querySelector(".return-date-field");
+    const discountMsg = document.getElementById("round-trip-discount");
 
-    function toggleReturnDateVisibility() {
-      if (roundTripRadio.checked) {
-        returnDateField.style.display = "block";
-      } else {
-        returnDateField.style.display = "none";
-      }
+    function toggleRoundTripUI() {
+      const isRoundTrip = roundTripRadio.checked;
+      returnDateField.style.display = isRoundTrip ? "block" : "none";
+      discountMsg.style.display = isRoundTrip ? "block" : "none";
     }
 
-    roundTripRadio.addEventListener("change", toggleReturnDateVisibility);
-    oneWayRadio.addEventListener("change", toggleReturnDateVisibility);
+    roundTripRadio.addEventListener("change", toggleRoundTripUI);
+    oneWayRadio.addEventListener("change", toggleRoundTripUI);
 
-    toggleReturnDateVisibility();
+    toggleRoundTripUI(); // Run on page load
   });
 </script>
 
