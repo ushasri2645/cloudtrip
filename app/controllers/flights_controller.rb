@@ -85,8 +85,43 @@ class FlightsController < ApplicationController
     render :index
   end
 
-  private
+  def book
+    flight_number = params[:flight_number]
+    class_type    = params[:class_type]
+    passengers    = params[:passengers].to_i
 
+    lines = File.readlines(DATA_PATH)
+    updated_lines = []
+    updated = false
+    lines.each do |line|
+      fields = line.strip.split(",")
+      if fields[0] == flight_number
+        seat_index = case class_type
+        when "economy"     then 9
+        when "business"    then 10
+        when "first_class" then 11
+        end
+        available_seats = fields[seat_index].to_i
+        if available_seats >= passengers
+          fields[seat_index] = (available_seats - passengers).to_s
+          flash[:notice] = "Booking successful! ✅"
+        else
+          flash[:alert] = "Not enough seats available."
+        end
+        updated = true
+      end
+      updated_lines << fields.join(",")
+    end
+    if updated
+      File.open(DATA_PATH, "w") do |file|
+      file.puts updated_lines
+      end
+    end
+    sleep 5
+    redirect_to root_path
+  end
+
+  private
   def read_flights
     File.readlines(DATA_PATH).map do |line|
       fields = line.strip.split(",")
