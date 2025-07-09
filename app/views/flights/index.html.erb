@@ -386,10 +386,12 @@
         <% end %>
       </datalist>
 
-
+    <% if flash[:notice] %>
+        <p class="flash-alert" style="background: #e1f9e1; color: green;"><%= flash[:notice] %></p>
+      <% end %>
     <% if flash[:alert] %>
-      <p class="flash-alert"><%= flash[:alert] %></p>
-    <% end %>
+        <p class="flash-alert"><%= flash[:alert] %></p>
+      <% end %>
 
     <% if @return_flights.present? && @matching_flights.present? %>
     <p style="font-weight: bold; text-align:center;">🎉 You got a 5% discount for selecting a round trip!</p>
