@@ -279,7 +279,33 @@
       gap: 2rem;
       margin-top: 2rem;
     }
-    
+
+    .loader-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.6); 
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .loader-box {
+      text-align: center;
+    }
+
+    .spinner {
+      border: 5px solid #f3f3f3;
+      border-top: 5px solid #f2751d; 
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin: auto;
+    }
 
     @media (max-width: 768px) {
       .round-trip-grid {
@@ -338,7 +364,7 @@
         </label>
       </div>
 
-      <div id="round-trip-discount" style="display: none margin-bottom: 10px;">
+      <div id="round-trip-discount" style="display: none; margin-bottom: 10px;">
         <p style="font-weight: bold; text-align:center; color:blue">🎉 We have a 5% discount for a round trip! 🎉</p>
       </div>
 
@@ -392,7 +418,7 @@
       </datalist>
 
     <% if flash[:notice] %>
-        <p class="flash-alert" style="background: #e1f9e1; color: green;"><%= flash[:notice] %></p>
+        <p id="flash-alert" class="flash-alert" style="background: #e1f9e1; color: green;"><%= flash[:notice] %></p>
       <% end %>
     <% if flash[:alert] %>
         <p class="flash-alert"><%= flash[:alert] %></p>
@@ -421,7 +447,12 @@
                     Total Fare for <%= params[:passengers] %> passenger(s): <span class="fare-amount">$<%= sprintf('%.2f', flight[:total_fare]) %></span>
                     <div>(Price per person: $<%= sprintf('%.2f', flight[:price_per_person]) %>)</div>
                   </div>
-                  <button class="button-primary">Book Now</button>
+                   <%= form_with url: flights_book_path, method: :post, local: true , html: { id: "booking-form-#{flight[:flight_number]}" } do |bf| %>
+                  <%= hidden_field_tag :flight_number, flight[:flight_number] %>
+                  <%= hidden_field_tag :class_type, flight[:class_type] %>
+                  <%= hidden_field_tag :passengers, params[:passengers] || 1 %>
+                  <%= bf.submit "Book Now", class: "button-primary" %>
+                <% end %>
                 </div>
               </div>
             </div>
@@ -449,7 +480,12 @@
                     Total Fare for <%= params[:passengers] %> passenger(s): <span class="fare-amount">$<%= sprintf('%.2f', flight[:total_fare]) %></span>
                     <div>(Price per person: $<%= sprintf('%.2f', flight[:price_per_person]) %>)</div>
                   </div>
-                  <button class="button-primary">Book Now</button>
+                <%= form_with url: flights_book_path, method: :post, local: true , html: { id: "booking-form-#{flight[:flight_number]}" } do |bf| %>
+                  <%= hidden_field_tag :flight_number, flight[:flight_number] %>
+                  <%= hidden_field_tag :class_type, flight[:class_type] %>
+                  <%= hidden_field_tag :passengers, params[:passengers] || 1 %>
+                  <%= bf.submit "Book Now", class: "button-primary" %>
+                <% end %>
                 </div>
               </div>
             </div>
@@ -478,7 +514,12 @@
                 Total Fare for <%= params[:passengers] %> passenger(s): <span class="fare-amount">$<%= sprintf('%.2f', flight[:total_fare]) %></span>
                 <div>(Price per person: $<%= sprintf('%.2f', flight[:price_per_person]) %>)</div>
               </div>
-              <button class="button-primary">Book Now</button>
+                <%= form_with url: flights_book_path, method: :post, local: true , html: { id: "booking-form-#{flight[:flight_number]}" } do |bf| %>
+                  <%= hidden_field_tag :flight_number, flight[:flight_number] %>
+                  <%= hidden_field_tag :class_type, flight[:class_type] %>
+                  <%= hidden_field_tag :passengers, params[:passengers] || 1 %>
+                  <%= bf.submit "Book Now", class: "button-primary" %>
+                <% end %>
             </div>
           </div>
         </div>
@@ -488,24 +529,73 @@
 
   </div>
 </div>
-<script>
-   document.addEventListener("DOMContentLoaded", function () {
-    const roundTripRadio = document.querySelector('input[name="trip_type"][value="round_trip"]');
-    const oneWayRadio = document.querySelector('input[name="trip_type"][value="one_way"]');
-    const returnDateField = document.querySelector(".return-date-field");
-    const discountMsg = document.getElementById("round-trip-discount");
 
-    function toggleRoundTripUI() {
-      const isRoundTrip = roundTripRadio.checked;
-      returnDateField.style.display = isRoundTrip ? "block" : "none";
-      discountMsg.style.display = isRoundTrip ? "block" : "none";
+<div id="booking-loader-modal" style="display: none;">
+    <div class="loader-backdrop">
+      <div class="loader-box">
+        <div class="spinner"></div>
+        <p style="color: white; margin-top: 1rem;">Booking in progress... ⏳</p>
+      </div>
+    </div>
+  </div>
+
+<script>
+function toggleRoundTripUI() {
+  const roundTripRadio = document.querySelector('input[name="trip_type"][value="round_trip"]');
+  const oneWayRadio = document.querySelector('input[name="trip_type"][value="one_way"]');
+  const returnDateField = document.querySelector(".return-date-field");
+  const discountMsg = document.getElementById("round-trip-discount");
+
+  if (!roundTripRadio || !oneWayRadio) return;
+
+  const isRoundTrip = roundTripRadio.checked;
+  if (returnDateField) returnDateField.style.display = isRoundTrip ? "block" : "none";
+  if (discountMsg) discountMsg.style.display = isRoundTrip ? "block" : "none";
+}
+
+function hideFlash() {
+  const flashAlerts = document.querySelectorAll(".flash-alert, #flash-alert");
+  flashAlerts.forEach(flash => flash.style.display = "none");
+}
+
+function initFlightUI() {
+  const roundTripRadio = document.querySelector('input[name="trip_type"][value="round_trip"]');
+  const oneWayRadio = document.querySelector('input[name="trip_type"][value="one_way"]');
+  const forms = document.querySelectorAll("form[id^='booking-form']");
+
+    if (roundTripRadio) {
+      roundTripRadio.addEventListener("change", () => {
+        toggleRoundTripUI();
+        hideFlash(); 
+      });
     }
 
-    roundTripRadio.addEventListener("change", toggleRoundTripUI);
-    oneWayRadio.addEventListener("change", toggleRoundTripUI);
+    if (oneWayRadio) {
+      oneWayRadio.addEventListener("change", () => {
+        toggleRoundTripUI();
+        hideFlash();
+      });
+    }
+  toggleRoundTripUI(); 
 
-    toggleRoundTripUI(); // Run on page load
+  forms.forEach(form => {
+    form.addEventListener("submit", function () {
+      const modal = document.getElementById("booking-loader-modal");
+      const button = form.querySelector("input[type='submit']");
+      if (modal) modal.style.display = "block";
+      if (button) {
+        button.disabled = true;
+        button.value = "Booking...";
+      }
+    });
   });
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initFlightUI);
+} else {
+  initFlightUI();
+}
 </script>
 
 </body>
