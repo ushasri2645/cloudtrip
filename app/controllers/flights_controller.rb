@@ -97,10 +97,10 @@ class FlightsController < ApplicationController
       fields = line.strip.split(",")
       if fields[0] == flight_number
         seat_index = case class_type
-                    when "economy"     then 9
-                    when "business"    then 10
-                    when "first_class" then 11
-                    end
+        when "economy"     then 9
+        when "business"    then 10
+        when "first_class" then 11
+        end
         available_seats = fields[seat_index].to_i
         if available_seats >= passengers
           fields[seat_index] = (available_seats - passengers).to_s
@@ -111,8 +111,8 @@ class FlightsController < ApplicationController
         updated = true
       end
       updated_lines << fields.join(",")
-    end 
-    if(updated)
+    end
+    if updated
       File.open(DATA_PATH, "w") do |file|
       file.puts updated_lines
       end
