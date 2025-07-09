@@ -175,9 +175,9 @@ DATA
       end
     end
     context "when searching flights for today with past and future times" do
-      let(:today) { Date.today.strftime("%Y-%m-%d") }
-      let(:past_time) { (Time.now - 1.hour).strftime("%I:%M %p") }
-      let(:future_time) { (Time.now + 1.hour).strftime("%I:%M %p") }
+      let(:today) { Time.zone.today.strftime("%Y-%m-%d") }
+      let(:past_time) { (1.hour.ago).strftime("%I:%M %p") }
+      let(:future_time) { (1.hour.from_now).strftime("%I:%M %p") }
 
       before do
         File.write(data_path, <<~DATA)

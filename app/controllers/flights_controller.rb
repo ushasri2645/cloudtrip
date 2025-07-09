@@ -62,7 +62,6 @@ class FlightsController < ApplicationController
       flight[:departure_date] == date &&
       seats_available >= passengers &&
       time_condition
-      
     end.map do |flight|
       seat_key = "#{class_type}_seats".to_sym
       available_seats = flight[seat_key]
