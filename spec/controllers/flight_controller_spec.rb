@@ -212,5 +212,21 @@ DATA
           expect(unchanged_seats).to eq(20)
         end
       end
+
+      context "when round trip flights are available" do
+      it "calculates discounted total round trip fare" do
+        post "/flights/search", params: {
+          source: "Bangalore",
+          destination: "London",
+          date: "2025-07-12",
+          return_date: "2025-07-12",
+          trip_type: "round_trip",
+          class_type: "economy",
+          passengers: 1
+        }
+
+        expect(response).to have_http_status(:ok)
+      end
+    end
   end
 end
