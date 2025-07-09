@@ -9,7 +9,7 @@ Rails.application.routes.draw do
   root "flights#index"
   post "flights/search", to: "flights#search"
   get "flights/search", to: "flights#search"
-  resources :bookings, only: [ :new, :create, :show ]
+  post "flights/book", to: "flights#book"
 
   # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
