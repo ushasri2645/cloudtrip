@@ -39,14 +39,14 @@ class FlightsController < ApplicationController
       when "economy"     then flight[:economy_seats]
       when "business"    then flight[:business_seats]
       when "first_class" then flight[:first_class_seats]
-      else 0
+      else flight[:economy_seats]
       end
 
       flight[:source].to_s.strip.downcase == source &&
       flight[:destination].to_s.strip.downcase == destination &&
       flight[:departure_date].to_s.strip == date &&
       seats_available >= passengers
-    end.map { |flight| decorate_flight(flight, class_type, passengers) }
+    end.map { |flight| calculate_fare(flight, class_type, passengers) }
 
     if trip_type == "round_trip" && return_date.present?
       @return_flights = flights.select do |flight|
@@ -61,17 +61,16 @@ class FlightsController < ApplicationController
         flight[:destination].to_s.strip.downcase == source &&
         flight[:departure_date].to_s.strip == return_date &&
         seats_available >= passengers
-      end.map { |flight| decorate_flight(flight, class_type, passengers) }
-
-      if @matching_flights.present? && @return_flights.present?
-        outbound_fare = @matching_flights.first[:total_fare]
-        return_fare = @return_flights.first[:total_fare]
-        combined_fare = outbound_fare + return_fare
-        @total_round_trip_fare = (combined_fare * 0.95).round(2)
-      end
+      end.map { |flight| calculate_fare(flight, class_type, passengers) }
     end
 
-    flash.now[:alert] = "No Flights Available" if @matching_flights.empty?
+    if trip_type == "round_trip" && @return_flights.empty?
+      @matching_flights=[]
+      flash.now[:alert] = "No Flights Available supporting round trip"
+    elsif @matching_flights.empty?
+      flash.now[:alert] = "No Flights Available"
+    end
+
     render :index
   end
 
@@ -113,7 +112,7 @@ class FlightsController < ApplicationController
 
   private
 
-  def decorate_flight(flight, class_type, passengers)
+  def calculate_fare(flight, class_type, passengers)
     seat_key = "#{class_type}_seats".to_sym
     total_seats = case class_type
     when "economy"     then flight[:economy_total]
