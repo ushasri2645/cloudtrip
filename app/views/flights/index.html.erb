@@ -292,39 +292,6 @@
       gap: 2rem;
     }
 
-    .loader-backdrop {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0, 0, 0, 0.6); 
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 9999;
-    }
-
-    .loader-box {
-      text-align: center;
-    }
-
-
-    .spinner {
-      border: 5px solid #f3f3f3;
-      border-top: 5px solid #f2751d; 
-      border-radius: 50%;
-      width: 50px;
-      height: 50px;
-      animation: spin 1s linear infinite;
-      margin: auto;
-    }
-
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
     @media (max-width: 600px) {
       .hero h1 {
         font-size: 2rem;
@@ -344,15 +311,15 @@
   
 </head>
 <body>
-  <div class="top">
-    <div class="hero">
-      <h1>Travel Beyond Boundaries</h1>
-    </div>
+<div class="top">
+  <div class="hero">
+    <h1>Travel Beyond Boundaries</h1>
+  </div>
 
-    <div class="container">
-      <p class="sub-header">
-        Search for flights to your dream destinations and book with ease.
-      </p>
+  <div class="container">
+    <p class="sub-header">
+      Search for flights to your dream destinations and book with ease.
+    </p>
 
     <%= form_with url: flights_search_path, method: :post, local: true, data: { turbo: false } do |f| %>
       <% selected_trip_type = params[:trip_type] || "one_way" %>
@@ -407,132 +374,135 @@
     <% end %>
       </div>
 
-        <datalist id="source-list">
-          <% @cities.each do |city| %>
-            <option value="<%= city %>">
-          <% end %>
-        </datalist>
+      <datalist id="source-list">
+        <% @cities.each do |city| %>
+          <option value="<%= city %>">
+        <% end %>
+      </datalist>
 
-        <datalist id="destination-list">
-          <% @cities.each do |city| %>
-            <option value="<%= city %>">
-          <% end %>
-        </datalist>
+      <datalist id="destination-list">
+        <% @cities.each do |city| %>
+          <option value="<%= city %>">
+        <% end %>
+      </datalist>
 
-        <div class="form-group half">
-          <div>
-            <%= f.label :date, "Departure Date:" %>
-            <%= f.date_field :date, placeholder: "YYYY-MM-DD", value: params[:date], required: true, min: Date.today.strftime("%Y-%m-%d"), max: (Date.today >> 3).strftime("%Y-%m-%d") %>
-          </div>
-          <div>
-            <%= f.label :passengers, "Number of Passengers:" %>
-            <%= f.number_field :passengers, min: 1, placeholder: "1", value: params[:passengers], max:4 %>
-          </div>
-        </div>
-        <div class="form-group half">
-          <div>
-            <%= f.label :class_type, "Class Type:" %>
-            <%= f.select :class_type,
-              [["Economy", "economy"], ["Business", "business"], ["First Class", "first_class"]],
-              { prompt: "Select Class" },
-              { selected: params[:class_type] } %>
-          </div>
-        </div>
 
-        <%= f.submit "Search Flights", class: "button-primary" %>
-      <% end %>
+    <% if flash[:alert] %>
+      <p class="flash-alert"><%= flash[:alert] %></p>
+    <% end %>
 
-      <% if flash[:notice] %>
-        <p class="flash-alert" style="background: #e1f9e1; color: green;"><%= flash[:notice] %></p>
-      <% end %>
-      <% if flash[:alert] %>
-        <p class="flash-alert"><%= flash[:alert] %></p>
-      <% end %>
-
-      <% if @matching_flights.present? %>
-        <h2 class="header-text" style="margin-top: 2rem; margin-bottom: 1rem; font-size: 2rem; color: var(--header-text);">
-          Flight Search Results
-        </h2>
-
-        <% @matching_flights.each do |flight| %>
-          <div class="flight-card">
-            <div class="flight-card-content">
-              <div class="flight-card-header">
-                <span class="route">
-                  <%= flight[:source] %> → <%= flight[:destination] %>
-                </span>
-                <span class="flight-number">
-                  Flight <%= flight[:flight_number] %>
-                </span>
-              </div>
-              <div class="flight-card-details">
-                
-              <div class="inner-details">
-                  <strong>Departure:</strong>
-                  <%= flight[:departure_date] %> at <%= flight[:departure_time] %>
+    <% if @return_flights.present? && @matching_flights.present? %>
+    <p style="font-weight: bold; text-align:center;">🎉 You got a 5% discount for selecting a round trip!</p>
+    <p style="text-align:center; font-size: 1.1rem;">Total Round Trip Fare: $<%= sprintf('%.2f', @total_round_trip_fare) %></p>
+      <div class="round-trip-grid">
+        <!-- Column 1: Departure Flights -->
+        <div class="round-trip-column">
+          <h2 class="header-text" style="text-align:center;">Departure: <%= params[:source] %> → <%= params[:destination] %></h2>
+          <% @matching_flights.each do |flight| %>
+            <div class="flight-card">
+              <div class="flight-card-content">
+                <div class="flight-card-header">
+                  <span class="route"><%= flight[:source] %> → <%= flight[:destination] %></span>
+                  <span class="flight-number">Flight <%= flight[:flight_number] %></span>
                 </div>
-                <div class="inner-details">
-                  <strong>Arrival:</strong>
-                  <%= flight[:arrival_date] %> at <%= flight[:arrival_time] %>
+                <div class="flight-card-details">
+                  <div class="inner-details"><strong>Departure:</strong> <%= flight[:departure_date] %> at <%= flight[:departure_time] %></div>
+                  <div class="inner-details"><strong>Arrival:</strong> <%= flight[:arrival_date] %> at <%= flight[:arrival_time] %></div>
+                  <div class="inner-details"><strong>Class:</strong> <%= flight[:class_type] %></div>
+                  <div class="inner-details"><strong>Available Seats:</strong> <%= flight["#{flight[:class_type]}_seats".to_sym] %></div>
                 </div>
-                
-                <div class="inner-details">
-                  <strong>Class:</strong>
-                  <%= flight[:class_type] %>
-                </div>
-                <div class="inner-details">
-                  <strong>Available Seats:</strong>
-                  <%= flight["#{flight[:class_type]}_seats".to_sym] %>
-                </div>
-              </div>
-              <div class="flight-card-footer">
-                <div class="fare inner-details">
-                  Total Fare for <%= params[:passengers] %> passenger(s):
-                  <span class="fare-amount">
-                    $<%= sprintf('%.2f', flight[:total_fare]) %>
-                  </span>
-                  <div>
-                    (Price per person: $<%= sprintf('%.2f', flight[:price_per_person]) %>)
+                <div class="flight-card-footer">
+                  <div class="fare inner-details">
+                    Total Fare for <%= params[:passengers] %> passenger(s): <span class="fare-amount">$<%= sprintf('%.2f', flight[:total_fare]) %></span>
+                    <div>(Price per person: $<%= sprintf('%.2f', flight[:price_per_person]) %>)</div>
                   </div>
+                  <button class="button-primary">Book Now</button>
                 </div>
-                <%= form_with url: flights_book_path, method: :post, local: true , html: { id: "booking-form-#{flight[:flight_number]}" } do |bf| %>
-                  <%= hidden_field_tag :flight_number, flight[:flight_number] %>
-                  <%= hidden_field_tag :class_type, flight[:class_type] %>
-                  <%= hidden_field_tag :passengers, params[:passengers] || 1 %>
-                  <%= bf.submit "Book Now", class: "button-primary" %>
-                <% end %>
               </div>
             </div>
-          </div>
-        <% end %>
-      <% end %>
-    </div>
-  </div>
-  <div id="booking-loader-modal" style="display: none;">
-    <div class="loader-backdrop">
-      <div class="loader-box">
-        <div class="spinner"></div>
-        <p style="color: white; margin-top: 1rem;">Booking in progress... ⏳</p>
+          <% end %>
+        </div>
+
+        <!-- Column 2: Return Flights -->
+        <div class="round-trip-column">
+          <h2 class="header-text" style="text-align:center;">Return: <%= params[:destination] %> → <%= params[:source] %></h2>
+          <% @return_flights.each do |flight| %>
+            <div class="flight-card">
+              <div class="flight-card-content">
+                <div class="flight-card-header">
+                  <span class="route"><%= flight[:source] %> → <%= flight[:destination] %></span>
+                  <span class="flight-number">Flight <%= flight[:flight_number] %></span>
+                </div>
+                <div class="flight-card-details">
+                  <div class="inner-details"><strong>Departure:</strong> <%= flight[:departure_date] %> at <%= flight[:departure_time] %></div>
+                  <div class="inner-details"><strong>Arrival:</strong> <%= flight[:arrival_date] %> at <%= flight[:arrival_time] %></div>
+                  <div class="inner-details"><strong>Class:</strong> <%= flight[:class_type] %></div>
+                  <div class="inner-details"><strong>Available Seats:</strong> <%= flight["#{flight[:class_type]}_seats".to_sym] %></div>
+                </div>
+                <div class="flight-card-footer">
+                  <div class="fare inner-details">
+                    Total Fare for <%= params[:passengers] %> passenger(s): <span class="fare-amount">$<%= sprintf('%.2f', flight[:total_fare]) %></span>
+                    <div>(Price per person: $<%= sprintf('%.2f', flight[:price_per_person]) %>)</div>
+                  </div>
+                  <button class="button-primary">Book Now</button>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
       </div>
-    </div>
+
+    <% elsif @matching_flights.present? %>
+      <!-- Fallback for One-Way -->
+      <h2 class="header-text" style="margin-top: 2rem;">Flight Search Results</h2>
+      <% @matching_flights.each do |flight| %>
+        <div class="flight-card">
+          <div class="flight-card-content">
+            <div class="flight-card-header">
+              <span class="route"><%= flight[:source] %> → <%= flight[:destination] %></span>
+              <span class="flight-number">Flight <%= flight[:flight_number] %></span>
+            </div>
+            <div class="flight-card-details">
+              <div class="inner-details"><strong>Departure:</strong> <%= flight[:departure_date] %> at <%= flight[:departure_time] %></div>
+              <div class="inner-details"><strong>Arrival:</strong> <%= flight[:arrival_date] %> at <%= flight[:arrival_time] %></div>
+              <div class="inner-details"><strong>Class:</strong> <%= flight[:class_type] %></div>
+              <div class="inner-details"><strong>Available Seats:</strong> <%= flight["#{flight[:class_type]}_seats".to_sym] %></div>
+            </div>
+            <div class="flight-card-footer">
+              <div class="fare inner-details">
+                Total Fare for <%= params[:passengers] %> passenger(s): <span class="fare-amount">$<%= sprintf('%.2f', flight[:total_fare]) %></span>
+                <div>(Price per person: $<%= sprintf('%.2f', flight[:price_per_person]) %>)</div>
+              </div>
+              <button class="button-primary">Book Now</button>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    <% end %>
+
+
   </div>
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const forms = document.querySelectorAll("form[id^='booking-form']");
+</div>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const roundTripRadio = document.querySelector('input[name="trip_type"][value="round_trip"]');
+    const oneWayRadio = document.querySelector('input[name="trip_type"][value="one_way"]');
+    const returnDateField = document.querySelector(".return-date-field");
 
-      forms.forEach(form => {
-        form.addEventListener("submit", function (e) {
-          const modal = document.getElementById("booking-loader-modal");
-          const button = form.querySelector("input[type='submit']");
+    function toggleReturnDateVisibility() {
+      if (roundTripRadio.checked) {
+        returnDateField.style.display = "block";
+      } else {
+        returnDateField.style.display = "none";
+      }
+    }
 
-          if (modal) modal.style.display = "block";
-          if (button) {
-            button.disabled = true;
-            button.value = "Booking...";
-          }
-        });
-      });
-    });
-  </script>
+    roundTripRadio.addEventListener("change", toggleReturnDateVisibility);
+    oneWayRadio.addEventListener("change", toggleReturnDateVisibility);
+
+    toggleReturnDateVisibility();
+  });
+</script>
+
 </body>
 </html>
