@@ -2,15 +2,21 @@ require_relative "../services/dynamic_pricing_service"
 
 class FlightsController < ApplicationController
   DATA_PATH = Rails.configuration.flight_data_file
+
   def index
     @cities = load_unique_cities
   end
 
   def search
     @cities = load_unique_cities
-    source = params[:source]
-    destination = params[:destination]
-    date = params[:date]
+
+    source = params[:source].to_s.strip.downcase
+    destination = params[:destination].to_s.strip.downcase
+    date = params[:date].to_s.strip
+    return_date = params[:return_date].to_s.strip
+    passengers = params[:passengers].present? ? params[:passengers].to_i : 1
+    class_type = params[:class_type].presence || "economy"
+    trip_type = params[:trip_type]
 
     if source.blank? || destination.blank? || date.blank?
       flash.now[:alert] = "Please enter Source, Destination, and Date."
@@ -18,38 +24,25 @@ class FlightsController < ApplicationController
       return render :index
     end
 
-    passengers = params[:passengers].present? ? params[:passengers].to_i : 1
-    if params[:class_type].blank?
-      class_type = "economy"
-      flash.now[:alert] = "Class type not selected. Defaulting to Economy class."
-    else
-      class_type = params[:class_type]
-    end
-
-    if source.present? && destination.present? && source.casecmp?(destination)
+    if source == destination
       flash.now[:alert] = "Origin and Destination must be different."
       @matching_flights = []
       return render :index
     end
 
+    flash.now[:alert] = "Class type not selected. Defaulting to Economy class." if params[:class_type].blank?
+
     flights = read_flights
-    price_multiplier = 1.0
 
     @matching_flights = flights.select do |flight|
-      seats_available, price_multiplier =
-        case class_type
-        when "economy"
-              [ flight[:economy_seats], 1.0 ]
-        when "business"
-              [ flight[:business_seats], 1.5 ]
-        when "first_class"
-              [ flight[:first_class_seats], 2.0 ]
-        else
-              [ flight[:economy_seats], 1.0 ]
-        end
+      seats_available = case class_type
+      when "economy"     then flight[:economy_seats]
+      when "business"    then flight[:business_seats]
+      when "first_class" then flight[:first_class_seats]
+      else flight[:economy_seats]
+      end
 
         time_condition = true
-
         if Date.parse(date) == Time.zone.today
           now = Time.zone.now
           flight_datetime_str = "#{flight[:departure_date]} #{flight[:departure_time]}"
@@ -57,41 +50,35 @@ class FlightsController < ApplicationController
           time_condition = flight_time > now
         end
 
-      flight[:source].casecmp?(source) &&
-      flight[:destination].casecmp?(destination) &&
-      flight[:departure_date] == date &&
-      seats_available >= passengers &&
-      time_condition
-    end.map do |flight|
-      seat_key = "#{class_type}_seats".to_sym
-      available_seats = flight[seat_key]
-      total_seats =
-        case class_type
-        when "economy"     then flight[:economy_total]
-        when "business"    then flight[:business_total]
-        when "first_class" then flight[:first_class_total]
-        else flight[:economy_total]
+      flight[:source].to_s.strip.downcase == source &&
+      flight[:destination].to_s.strip.downcase == destination &&
+      flight[:departure_date].to_s.strip == date &&
+      seats_available >= passengers
+    end.map { |flight| calculate_fare(flight, class_type, passengers) }
+
+    if trip_type == "round_trip" && return_date.present?
+      @return_flights = flights.select do |flight|
+        seats_available = case class_type
+        when "economy"     then flight[:economy_seats]
+        when "business"    then flight[:business_seats]
+        when "first_class" then flight[:first_class_seats]
+        else 0
         end
 
-      dynamic_price = DynamicPricingService.calculate_price(
-        flight[:price],
-        total_seats,
-        available_seats,
-        flight[:departure_date]
-      )
-
-      price_per_person = (dynamic_price) + (flight[:price] * price_multiplier)
-      total_fare = price_per_person * passengers
-
-      flight.merge(
-        total_fare: total_fare,
-        price_per_seat: dynamic_price,
-        price_per_person: price_per_person,
-        class_type: class_type || "economy"
-      )
+        flight[:source].to_s.strip.downcase == destination &&
+        flight[:destination].to_s.strip.downcase == source &&
+        flight[:departure_date].to_s.strip == return_date &&
+        seats_available >= passengers
+      end.map { |flight| calculate_fare(flight, class_type, passengers) }
     end
 
-    flash.now[:alert] = "No Flights Available" if @matching_flights.empty?
+    if trip_type == "round_trip" && @return_flights.empty?
+      @matching_flights=[]
+      flash.now[:alert] = "No Flights Available supporting round trip"
+    elsif @matching_flights.empty?
+      flash.now[:alert] = "No Flights Available"
+    end
+
     render :index
   end
 
@@ -132,6 +119,42 @@ class FlightsController < ApplicationController
   end
 
   private
+
+  def calculate_fare(flight, class_type, passengers)
+    seat_key = "#{class_type}_seats".to_sym
+    total_seats = case class_type
+    when "economy"     then flight[:economy_total]
+    when "business"    then flight[:business_total]
+    when "first_class" then flight[:first_class_total]
+    else flight[:economy_total]
+    end
+
+    available_seats = flight[seat_key]
+    price_multiplier = case class_type
+    when "economy" then 1.0
+    when "business" then 1.5
+    when "first_class" then 2.0
+    else 1.0
+    end
+
+    dynamic_price = DynamicPricingService.calculate_price(
+      flight[:price],
+      total_seats,
+      available_seats,
+      flight[:departure_date]
+    )
+
+    price_per_person = dynamic_price + (flight[:price] * price_multiplier)
+    total_fare = price_per_person * passengers
+
+    flight.merge(
+      total_fare: total_fare,
+      price_per_seat: dynamic_price,
+      price_per_person: price_per_person,
+      class_type: class_type
+    )
+  end
+
   def read_flights
     File.readlines(DATA_PATH).map do |line|
       fields = line.strip.split(",")
@@ -156,6 +179,6 @@ class FlightsController < ApplicationController
   end
 
   def load_unique_cities
-    read_flights.flat_map { |f| [ f[:source], f[:destination] ] }.uniq.sort
+    read_flights.flat_map { |f| [ f[:source].strip, f[:destination].strip ] }.uniq.sort
   end
 end
