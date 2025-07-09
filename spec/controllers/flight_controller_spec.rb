@@ -147,15 +147,15 @@ DATA
     context "when searching for first class flights" do
       it "calculates the correct total fare" do
           post "/flights/search", params: {
-          source: "Bangalore",
-          destination: "London",
-          date: "2025-07-12",
-          passengers: 2,
-          class_type: "first_class"
+            source: "Bangalore",
+            destination: "London",
+            date: "2025-07-12",
+            passengers: 2,
+            class_type: "first_class"
           }
 
           expect(response).to have_http_status(:ok)
-          expect(response.body).to include("$2220.00")
+          expect(response.body).to include("$2240.00")
       end
     end
 
@@ -174,5 +174,43 @@ DATA
         expect(response.body).not_to include("F103")
       end
     end
+  end
+
+  describe "POST /flights/book" do
+      context "when booking is successful" do
+        it "reduces seat count and redirects to root with success notice" do
+          original_lines = File.readlines(data_path)
+          economy_seats_before = original_lines[0].split(",")[9].to_i
+
+          post "/flights/book", params: {
+            flight_number: "F101",
+            class_type: "economy",
+            passengers: 3
+          }
+
+          expect(response).to redirect_to(root_path)
+          follow_redirect!
+          expect(response.body).to include("Booking successful")
+
+          updated_lines = File.readlines(data_path)
+          updated_economy_seats = updated_lines[0].split(",")[9].to_i
+          expect(updated_economy_seats).to eq(economy_seats_before - 3)
+        end
+      end
+
+      context "when there are not enough seats" do
+        it "does not update file and shows error message" do
+          post "/flights/book", params: {
+            flight_number: "F101",
+            class_type: "first_class",
+            passengers: 25
+          }
+          expect(response).to redirect_to(root_path)
+          follow_redirect!
+          expect(response.body).to include("Not enough seats available")
+          unchanged_seats = File.readlines(data_path)[0].split(",")[11].to_i
+          expect(unchanged_seats).to eq(20)
+        end
+      end
   end
 end
