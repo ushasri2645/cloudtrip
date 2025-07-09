@@ -94,7 +94,7 @@ class FlightsController < ApplicationController
         available_seats = fields[seat_index].to_i
         if available_seats >= passengers
           fields[seat_index] = (available_seats - passengers).to_s
-          flash[:notice] = "Booking successful! :white_check_mark:"
+          flash[:notice] = "Booking successful! ✅"
         else
           flash[:alert] = "Not enough seats available."
         end
