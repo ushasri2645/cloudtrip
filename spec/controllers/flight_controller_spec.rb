@@ -4,7 +4,7 @@ RSpec.describe "Flights", type: :request do
   let(:data_path) { Rails.root.join("spec/testData/testData.txt") }
 
   before do
-    Time.zone = "Asia/Kolkata" 
+    Time.zone = "Asia/Kolkata"
     allow(DynamicPricingService).to receive(:calculate_price).and_return(120.0)
     FileUtils.mkdir_p(data_path.dirname)
     File.write(data_path, <<~DATA)
