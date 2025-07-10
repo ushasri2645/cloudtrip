@@ -356,15 +356,17 @@
                 </div>
               </div>
               <div class="flight-card-footer">
-                <div class="fare inner-details">
-                  Total Fare for <%= params[:passengers] %> passenger(s):
-                  <span class="fare-amount">
-                    $<%= sprintf('%.2f', flight[:total_fare]) %>
-                  </span>
-                  <div>
-                    (Price per person: $<%= sprintf('%.2f', flight[:price_per_person]) %>)
-                  </div>
-                </div>
+               <div class="fare inner-details">
+              <div>Total Fare for <%= params[:passengers] %> passenger(s):</div>
+              <span class="fare-amount">
+                $<%= sprintf('%.2f', flight[:total_fare]) %>
+              </span>
+              <div>(Price per person: $<%= sprintf('%.2f', flight[:price_per_person]) %>)</div>
+              <div style="font-size: 0.9rem; margin-top: 0.3rem;">
+                Base price: $<%= sprintf('%.2f', flight[:base_price]) %><br />
+                Dynamic Price: $<%= sprintf('%.2f', flight[:extra_price]) %>
+              </div>
+            </div>
                 <%= form_with url: flights_book_path, method: :post, local: true , html: { id: "booking-form-#{flight[:flight_number]}" } do |bf| %>
                   <%= hidden_field_tag :flight_number, flight[:flight_number] %>
                   <%= hidden_field_tag :class_type, flight[:class_type] %>
