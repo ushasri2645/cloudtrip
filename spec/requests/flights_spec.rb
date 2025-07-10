@@ -39,14 +39,14 @@ RSpec.describe "Flights", type: :request do
       expect(response.body).to include("London")
     end
 
-    it "shows 'No Flights Available' if none found" do
+    it "shows 'Please enter cities mentioned in dropdown.' if none found" do
       post "/flights/search", params: {
         source: "Mumbai",
         destination: "Paris",
         date: "2025-07-12"
       }
       expect(response).to have_http_status(:success)
-      expect(response.body).to include("No Flights Available")
+      expect(response.body).to include("Please enter cities mentioned in dropdown.")
     end
   end
 end
