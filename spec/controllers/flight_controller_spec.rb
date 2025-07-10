@@ -4,15 +4,24 @@ RSpec.describe "Flights", type: :request do
   let(:data_path) { Rails.root.join("spec/testData/testData.txt") }
 
   before do
-    Time.zone = "Asia/Kolkata"
-    allow(DynamicPricingService).to receive(:calculate_price).and_return(120.0)
-    FileUtils.mkdir_p(data_path.dirname)
-    File.write(data_path, <<~DATA)
-      F101,Bangalore,London,2025-07-12,03:23 PM,2025-07-13,09:23 AM,100,500,50,30,20,50,30,20
-      F102,Bangalore,New York,2025-07-04,03:23 PM,2025-07-12,09:23 PM,10,900,5,3,2,5,3,2
-      F103,Chennai,London,2025-07-05,03:23 PM,2025-07-12,09:23 PM,50,600,20,20,10,20,20,10
-DATA
+    Time.use_zone("Asia/Kolkata") do
+      allow(DynamicPricingService).to receive(:calculate_price).and_return(120.0)
+
+      today = Time.zone.today.strftime("%Y-%m-%d")
+      past_time = (1.hour.ago.in_time_zone).strftime("%I:%M %p")
+      future_time = (2.hours.from_now.in_time_zone).strftime("%I:%M %p")
+
+      FileUtils.mkdir_p(data_path.dirname)
+      File.write(data_path, <<~DATA)
+        F101,Bangalore,London,2025-07-12,03:23 PM,2025-07-13,09:23 AM,100,500,50,30,20,50,30,20
+        F102,Bangalore,New York,2025-07-04,03:23 PM,2025-07-12,09:23 PM,10,900,5,3,2,5,3,2
+        F103,Chennai,London,2025-07-05,03:23 PM,2025-07-12,09:23 PM,50,600,20,20,10,20,20,10
+        F200,Bangalore,London,#{today},#{past_time},#{today},09:23 AM,100,500,50,30,20,50,30,20
+        F201,Bangalore,London,#{today},#{future_time},#{today},09:23 AM,100,500,50,30,20,50,30,20
+      DATA
+    end
   end
+
   describe "POST /flights/search" do
     context "when matching flights exist" do
       it "returns matching flights in the response" do
@@ -177,9 +186,9 @@ DATA
       end
     end
     context "when searching flights for today with past and future times" do
-      let(:today) { Time.zone.today.strftime("%Y-%m-%d") }
-      let(:past_time) { (1.hour.ago).strftime("%I:%M %p") }
-     let(:future_time) { (2.hours.from_now).strftime("%I:%M %p") }
+      let(:today)        { Time.use_zone("Asia/Kolkata") { Time.zone.today.strftime("%Y-%m-%d") } }
+      let(:past_time)    { Time.use_zone("Asia/Kolkata") { (1.hour.ago).strftime("%I:%M %p") } }
+      let(:future_time)  { Time.use_zone("Asia/Kolkata") { (2.hours.from_now).strftime("%I:%M %p") } }
 
       before do
         File.write(data_path, <<~DATA)
