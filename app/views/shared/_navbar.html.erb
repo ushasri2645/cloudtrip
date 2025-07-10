@@ -1,32 +1,26 @@
 <html>
   <head>
     <title>CloudTrip</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <style>
       .navbar-header {
         background-color: var(--card-bg);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         padding: 1.5rem 1rem;
       }
 
       .navbar-container {
         display: flex;
+        flex-direction: row;
         align-items: center;
-        justify-content: center;
-        position: relative;
-        max-width: 1200px;
-        margin: 0 auto;
-      }
-
-      .logo {
-        position: absolute;
-        left: 0;
+        justify-content: flex-start;
+        padding-left: 4.5rem;
+        height:60px;
       }
 
       .navbar-image {
-        height: 100px;
-        width: 100px;
-        object-fit: contain;
+        height: 80px;
+        width:auto;
       }
 
       .title {
@@ -34,6 +28,7 @@
         color: var(--body-text, #333);
         font-size: 1.5rem;
         font-weight: 600;
+        margin-top: 10px;
       }
 
       @media (max-width: 768px) {
@@ -51,6 +46,7 @@
           font-size: 1.2rem;
           text-align: center;
         }
+
       }
     </style>
   </head>
@@ -59,7 +55,8 @@
     <header class="navbar-header">
       <nav class="navbar-container">
         <div class="logo">
-          <%= image_tag "logo_no_name.png", alt: "CloudTrip Logo", class: "navbar-image" %>
+          <%= image_tag "logo_no_name.png", alt: "CloudTrip Logo", class:
+          "navbar-image" %>
         </div>
         <div class="title">
           <span class="header-lg">CloudTrip</span>
