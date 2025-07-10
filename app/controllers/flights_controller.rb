@@ -80,15 +80,21 @@ class FlightsController < ApplicationController
         flight[:departure_date]
       )
 
-      price_per_person = (dynamic_price) + (flight[:price] * price_multiplier)
-      total_fare = price_per_person * passengers
+        price_per_seat = dynamic_price
+        base_price = flight[:price]
+        extra_price = (price_per_seat + base_price * price_multiplier) - base_price
+        price_per_person = price_per_seat + (base_price * price_multiplier)
+        total_fare = price_per_person * passengers
 
-      flight.merge(
-        total_fare: total_fare,
-        price_per_seat: dynamic_price,
-        price_per_person: price_per_person,
-        class_type: class_type || "economy"
-      )
+
+        flight.merge(
+          total_fare: total_fare,
+          price_per_seat: price_per_seat,
+          price_per_person: price_per_person,
+          base_price: base_price,
+          extra_price: extra_price,
+          class_type: class_type || "economy"
+        )
     end
 
     flash.now[:alert] = "No Flights Available" if @matching_flights.empty?
