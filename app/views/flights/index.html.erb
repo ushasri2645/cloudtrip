@@ -490,22 +490,23 @@
               </div>
               <div class="flight-card-footer">
                <div class="fare inner-details">
-              <div>Total Fare for <%= params[:passengers] %> passenger(s):</div>
-              <span class="fare-amount">
-                $<%= sprintf('%.2f', flight[:total_fare]) %>
-              </span>
-             <div class="fare-breakdown">
-                <div class="fare-line">
-                  Price per person: <span class="fare-value">$<%= sprintf('%.2f', flight[:price_per_person]) %></span>
+                <% passenger_count = params[:passengers].presence || 1 %>
+                <div>Total Fare for <%= passenger_count %> passenger(s):</div>
+                    <span class="fare-amount">
+                      $<%= sprintf('%.2f', flight[:total_fare]) %>
+                    </span>
+                  <div class="fare-breakdown">
+                      <div class="fare-line">
+                        Price per person: <span class="fare-value">$<%= sprintf('%.2f', flight[:price_per_person]) %></span>
+                      </div>
+                      <div class="fare-line">
+                        Base price: <span class="fare-value">$<%= sprintf('%.2f', flight[:base_price]) %></span>
+                      </div>
+                      <div class="fare-line">
+                        Dynamic Price + Tier-based Price: <span class="fare-value">$<%= sprintf('%.2f', flight[:extra_price]) %></span>
+                      </div>
+                  </div>
                 </div>
-                <div class="fare-line">
-                  Base price: <span class="fare-value">$<%= sprintf('%.2f', flight[:base_price]) %></span>
-                </div>
-                <div class="fare-line">
-                  Dynamic Price: <span class="fare-value">$<%= sprintf('%.2f', flight[:extra_price]) %></span>
-                </div>
-              </div>
-            </div>
                 <%= form_with url: flights_book_path, method: :post, local: true , html: { id: "booking-form-#{flight[:flight_number]}" } do |bf| %>
                   <%= hidden_field_tag :flight_number, flight[:flight_number] %>
                   <%= hidden_field_tag :class_type, flight[:class_type] %>
