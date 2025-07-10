@@ -169,7 +169,7 @@ DATA
         }
 
         expect(response).to have_http_status(:ok)
-        expect(response.body).to include("Origin and Destination must be different.")
+        expect(response.body).to include("Source and Destination must be different.")
         expect(response.body).not_to include("F101")
         expect(response.body).not_to include("F103")
       end
