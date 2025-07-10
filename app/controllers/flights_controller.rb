@@ -27,7 +27,7 @@ class FlightsController < ApplicationController
     end
 
     if source.present? && destination.present? && source.casecmp?(destination)
-      flash.now[:alert] = "Origin and Destination must be different."
+      flash.now[:alert] = "Source and Destination must be different."
       @matching_flights = []
       return render :index
     end
@@ -101,8 +101,8 @@ class FlightsController < ApplicationController
 
   def book
     flight_number = params[:flight_number]
-    class_type    = params[:class_type]
-    passengers    = params[:passengers].to_i
+    class_type    = params[:class_type] || "economy"
+    passengers    = params["passengers"].present? ? params[:passengers].to_i : 1
 
     lines = File.readlines(DATA_PATH)
     updated_lines = []
