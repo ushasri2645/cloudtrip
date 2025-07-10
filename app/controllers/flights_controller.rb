@@ -101,7 +101,7 @@ class FlightsController < ApplicationController
 
   def book
     flight_number = params[:flight_number]
-    class_type    = params[:class_type] || 'economy'
+    class_type    = params[:class_type] || "economy"
     passengers    = params["passengers"].present? ? params[:passengers].to_i : 1
 
     lines = File.readlines(DATA_PATH)
