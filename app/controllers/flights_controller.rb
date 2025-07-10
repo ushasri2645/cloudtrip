@@ -27,7 +27,7 @@ class FlightsController < ApplicationController
     end
 
     if source.present? && destination.present? && source.casecmp?(destination)
-      flash.now[:alert] = "Origin and Destination must be different."
+      flash.now[:alert] = "Source and Destination must be different."
       @matching_flights = []
       return render :index
     end
