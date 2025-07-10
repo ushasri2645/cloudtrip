@@ -53,7 +53,7 @@ class FlightsController < ApplicationController
         if Date.parse(date) == Time.zone.today
           now = Time.zone.now
           flight_datetime_str = "#{flight[:departure_date]} #{flight[:departure_time]}"
-          flight_time = Time.strptime(flight_datetime_str, "%Y-%m-%d %I:%M %p")
+          flight_time = Time.zone.strptime(flight_datetime_str, "%Y-%m-%d %I:%M %p")
           time_condition = flight_time > now
         end
 
