@@ -1,330 +1,326 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Premium Flight Search</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap"
-      rel="stylesheet"
-    />
 
-    <style>
-      .top {
-        display: flex;
-        flex-direction: column;
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Premium Flight Search</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    .top {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hero {
+      position: relative;
+      width: 100vw;
+      max-width: 100%;
+      height: 400px;
+      background: url("https://66.media.tumblr.com/51d284ac08537c871892eea7ecb5d647/tumblr_o6in6mGzxr1ud7phlo1_500.gif") center center / cover no-repeat;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      color: white;
+      font-family: var(--font-family-inter);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 1;
+    }
+
+    .hero h1 {
+      position: relative;
+      z-index: 2;
+      font-size: 3rem;
+      font-weight: 700;
+      text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+      color: white;
+    }
+
+    .container {
+      max-width: 100%;
+      width: 90%;
+      margin: -80px auto 3rem;
+      background: #ffffff;
+      border-radius: 1rem;
+      padding: 2rem;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      position: relative;
+      z-index: 10;
+      font-family: var(--font-family-inter);
+    }
+
+    .sub-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      font-size: 1.2rem;
+      color: var(--body-text);
+    }
+
+    form {
+      background: linear-gradient(135deg, #ffffff, #f9fafe);
+      padding: 2rem;
+      border-radius: 0.75rem;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 1rem;
+      overflow-x: auto;
+      padding-bottom: 1rem;
+      margin-bottom: 2rem;
+      margin-top: 2rem;
+    }
+
+    .form-group.full-row.five-cols>div {
+      flex: 1 1 15%;
+      min-width: 120px;
+    }
+
+    .form-group .submit-button {
+      flex: 0 0 auto;
+      width: auto;
+    }
+
+    @media (max-width: 600px) {
+      .form-group.full-row.five-cols>div {
+        flex: 1 1 100%;
+        min-width: 100%;
       }
 
-      .hero {
-        position: relative;
-        width: 100vw;
-        max-width: 100%;
-        height: 400px;
-        background: url("https://66.media.tumblr.com/51d284ac08537c871892eea7ecb5d647/tumblr_o6in6mGzxr1ud7phlo1_500.gif")
-          center center / cover no-repeat;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        color: white;
-        font-family: var(--font-family-inter);
-      }
-
-      .hero::after {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.4);
-        z-index: 1;
-      }
-
-      .hero h1 {
-        position: relative;
-        z-index: 2;
-        font-size: 3rem;
-        font-weight: 700;
-        text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-        color: white;
-      }
-
-      .container {
-        max-width: 100%;
-        width: 90%;
-        margin: -80px auto 3rem;
-        background: #ffffff;
-        border-radius: 1rem;
-        padding: 2rem;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-        position: relative;
-        z-index: 10;
-        font-family: var(--font-family-inter);
-      }
-
-      .sub-header {
-        text-align: center;
-        margin-bottom: 2rem;
-        font-size: 1.2rem;
-        color: var(--body-text);
-      }
-
-      form {
-        background: linear-gradient(135deg, #ffffff, #f9fafe);
-        padding: 2rem;
-        border-radius: 0.75rem;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
-      }
-
-      .form-group {
-        display: flex;
-        flex-wrap: wrap;
-        align-items: flex-end;
-        gap: 1rem;
-        overflow-x: auto;
-        padding-bottom: 1rem;
-        margin-bottom: 2rem;
-        margin-top: 2rem;
-      }
-
-      /* NEW: constrain width of each field to prevent wrapping */
-      .form-group.full-row.five-cols > div {
-        flex: 1 1 15%;
-        min-width: 120px;
-      }
-
-      /* Keep submit button narrow */
       .form-group .submit-button {
-        flex: 0 0 auto;
-        width: auto;
+        flex-basis: 100%;
       }
+    }
 
-      @media (max-width: 600px) {
-        .form-group.full-row.five-cols > div {
-          flex: 1 1 100%;
-          min-width: 100%;
-        }
-        .form-group .submit-button {
-          flex-basis: 100%;
-        }
-      }
+    label {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: var(--body-text);
+      display: block;
+      margin-bottom: 0.25rem;
+    }
 
-      label {
-        font-weight: 600;
-        font-size: 0.95rem;
-        color: var(--body-text);
-        display: block;
-        margin-bottom: 0.25rem;
-      }
+    input,
+    select {
+      margin-top: 10px;
+      padding: 0.75rem;
+      border: 1px solid #d3dce6;
+      border-radius: 0.375rem;
+      font-family: var(--font-family-inter);
+      font-size: 1rem;
+      width: 100%;
+      transition: border 0.3s, box-shadow 0.3s;
+    }
 
-      input,
-      select {
-        margin-top: 10px;
-        padding: 0.75rem;
-        border: 1px solid #d3dce6;
-        border-radius: 0.375rem;
-        font-family: var(--font-family-inter);
-        font-size: 1rem;
-        width: 100%;
-        transition: border 0.3s, box-shadow 0.3s;
-      }
+    input:focus,
+    select:focus {
+      border-color: var(--primary-button);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+      outline: none;
+    }
 
-      input:focus,
-      select:focus {
-        border-color: var(--primary-button);
-        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
-        outline: none;
-      }
+    .button-primary {
+      background-color: var(--primary-button);
+      color: white;
+      border: none;
+      border-radius: 0.375rem;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
 
-      .button-primary {
-        background-color:var(--primary-button);
-        color: white;
-        border: none;
-        border-radius: 0.375rem;
-        padding: 0.75rem 1.5rem;
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background-color 0.3s;
-      }
+    .button-primary:hover {
+      background: var(--header-text)
+    }
 
-      .button-primary:hover {
-        background: var(--header-text)
-      }
+    .flight-card {
+      width: 100%;
+      position: relative;
+      border-radius: 1rem;
+      overflow: hidden;
+      margin-bottom: 2rem;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+      background: #fff;
+    }
 
-      .flight-card {
-        width: 100%;
-        position: relative;
-        border-radius: 1rem;
-        overflow: hidden;
-        margin-bottom: 2rem;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
-        background: #fff;
-      }
+    .flight-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      opacity: 0.3;
+      filter: blur(4px);
+      z-index: 0;
+    }
 
-      .flight-card::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        opacity: 0.3;
-        filter: blur(4px);
-        z-index: 0;
-      }
+    .flight-card-content {
+      position: relative;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 2rem;
+      border-radius: 1rem;
+      backdrop-filter: blur(3px);
+    }
 
-      .flight-card-content {
-        position: relative;
-        z-index: 1;
-        background: rgba(255, 255, 255, 0.8);
-        padding: 2rem;
-        border-radius: 1rem;
-        backdrop-filter: blur(3px);
-      }
+    .flight-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
 
-      .flight-card-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-      }
+    .flight-card-header .route {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary-button);
+    }
 
-      .flight-card-header .route {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--primary-button);
-      }
+    .flight-card-header .flight-number {
+      color: var(--primary-button);
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
 
-      .flight-card-header .flight-number {
-        color: var(--primary-button);
-        font-size: 1.1rem;
-        font-weight: 600;
-      }
+    .flight-card-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: var(--body-text);
+      font-size: 0.95rem;
+    }
 
-      .flight-card-details {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1.5rem;
-        margin-bottom: 1.5rem;
-        color: var(--body-text);
-        font-size: 0.95rem;
-      }
+    .flash-alert {
+      background-color: var(--flash-bg);
+      color: green;
+      padding: 1rem 1.5rem;
+      margin: 2rem auto;
+      max-width: 600px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
 
-      .flash-alert {
-        background-color: var(--flash-bg);
-        color: green;
-        padding: 1rem 1.5rem;
-        margin: 2rem auto;
-        max-width: 600px;
-        border-radius: 8px;
-        text-align: center;
-        font-weight: 600;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      }
+    .inner-details {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
 
-      .inner-details {
-        display: flex;
-        flex-direction: column;
-        gap: 0.4rem;
-      }
+    .flight-card-footer {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      border-top: 1px solid #ddd;
+      padding-top: 1rem;
+      align-items: center;
+    }
 
-      .flight-card-footer {
-        display: flex;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 1rem;
-        border-top: 1px solid #ddd;
-        padding-top: 1rem;
-        align-items: center;
-      }
+    .fare-amount {
+      font-size: 1.5rem;
+      color: var(--primary-button);
+      font-weight: 700;
+    }
 
-      .fare-amount {
-        font-size: 1.5rem;
-        color: var(--primary-button);
-        font-weight: 700;
-      }
+    .trip-selection {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
 
-      .trip-selection {
-        display: flex;
-        gap: 2rem;
-        align-items: center;
-        justify-content: center;
-        margin-bottom: 1.5rem;
-      }
+    .radio-option {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
 
-      .radio-option {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 1rem;
-        font-weight: 500;
-        cursor: pointer;
-      }
+    .radio-option input[type="radio"] {
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border: 1.5px solid black;
+      border-radius: 50%;
+      background-color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      outline: none;
+      margin: 0;
+      padding: 0;
+      transition: all 0.2s ease;
+    }
 
-      .radio-option input[type="radio"] {
-        appearance: none;
-        width: 16px;
-        height: 16px;
-        border: 1.5px solid black;
-        border-radius: 50%;
-        background-color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        outline: none;
-        margin: 0;
-        padding: 0;
-        transition: all 0.2s ease;
-      }
+    .radio-option input[type="radio"]::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      background-color: #eba06b;
+      border-radius: 50%;
+      transform: scale(0);
+      transition: transform 0.2s ease;
+    }
 
-      .radio-option input[type="radio"]::before {
-        content: "";
-        width: 8px;
-        height: 8px;
-        background-color: #eba06b;
-        border-radius: 50%;
-        transform: scale(0);
-        transition: transform 0.2s ease;
-      }
+    .radio-option input[type="radio"]:checked::before {
+      transform: scale(1);
+    }
 
-      .radio-option input[type="radio"]:checked::before {
-        transform: scale(1);
-      }
+    .round-trip-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 2rem;
+    }
 
+    @media (max-width: 768px) {
       .round-trip-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 2rem;
-        margin-top: 2rem;
+        grid-template-columns: 1fr;
       }
+    }
 
-      @media (max-width: 768px) {
-        .round-trip-grid {
-          grid-template-columns: 1fr;
-        }
-      }
+    .round-trip-column {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
 
-      .round-trip-column {
-        display: flex;
-        flex-direction: column;
-        gap: 2rem;
-      }
-
-      .loader-backdrop {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0, 0, 0, 0.6);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-      }
+    .loader-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
 
     .loader-box {
       text-align: center;
@@ -333,13 +329,14 @@
 
     .spinner {
       border: 5px solid #f3f3f3;
-      border-top: 5px solid #f2751d; 
+      border-top: 5px solid #f2751d;
       border-radius: 50%;
       width: 50px;
       height: 50px;
       animation: spin 1s linear infinite;
       margin: auto;
     }
+
     .fare-breakdown {
       font-size: 0.9rem;
       margin-top: 0.3rem;
@@ -355,198 +352,205 @@
       margin-left: 0.3rem;
     }
 
-      @keyframes spin {
-        0% {
-          transform: rotate(0deg);
-        }
-        100% {
-          transform: rotate(360deg);
-        }
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
       }
 
-      @media (max-width: 600px) {
-        .hero h1 {
-          font-size: 2rem;
-        }
-        .container {
-          margin: 1rem;
-          padding: 1rem;
-        }
-        form {
-          padding: 1rem;
-        }
-        .flight-card-content {
-          padding: 1rem;
-        }
+      100% {
+        transform: rotate(360deg);
       }
-    </style>
-  </head>
-  <body>
-    <div class="top">
-      <div class="hero">
-        <h1>Travel Beyond Boundaries</h1>
-      </div>
+    }
 
-      <div class="container">
-        <p class="sub-header">
-          Search for flights to your dream destinations and book with ease.
-        </p>
+    @media (max-width: 600px) {
+      .hero h1 {
+        font-size: 2rem;
+      }
 
-        <%= form_with url: flights_search_path, method: :post, local: true,
-        data: { turbo: false } do |f| %>
+      .container {
+        margin: 1rem;
+        padding: 1rem;
+      }
+
+      form {
+        padding: 1rem;
+      }
+
+      .flight-card-content {
+        padding: 1rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="top">
+    <div class="hero">
+      <h1>Travel Beyond Boundaries</h1>
+    </div>
+
+    <div class="container">
+      <p class="sub-header">
+        Search for flights to your dream destinations and book with ease.
+      </p>
+
+      <%= form_with url: flights_search_path, method: :post, local: true, data: { turbo: false } do |f| %>
         <div class="form-group full-row five-cols">
           <div class="label-input">
-            <%= f.label :source, "Source:" %> <%= f.text_field :source, id:
-            "source-input", list: "source-list", value: params[:source],
-            required: true %>
+            <%= f.label :source, "Source:" %>
+              <%= f.text_field :source, id: "source-input" , list: "source-list" , value: params[:source], required:
+                true %>
           </div>
           <div class="label-input">
-            <%= f.label :destination, "Destination:" %> <%=
-            f.text_field:destination, id: "destination-input", list:
-            "destination-list", value: params[:destination],required: true %>
+            <%= f.label :destination, "Destination:" %>
+              <%= f.text_field:destination, id: "destination-input" , list: "destination-list" , value:
+                params[:destination],required: true %>
           </div>
           <div class="label-input">
-            <%= f.label :date, "Departure Date:" %> <%= f.date_field :date, id:
-            "date", value: params[:date], required: true, min:
-            Date.today.strftime("%Y-%m-%d") %>
-          </div>
-
-          <div class="label-input">
-            <%= f.label :passengers, "Number of Passengers:" %> <%=
-            f.number_field :passengers, min: 1, placeholder: "1", value:
-            params[:passengers], max: 4 %>
+            <%= f.label :date, "Departure Date:" %>
+              <%= f.date_field :date, id: "date" , value: params[:date], required: true, min:
+                Date.today.strftime("%Y-%m-%d") %>
           </div>
 
           <div class="label-input">
-            <%= f.label :class_type, "Class Type:" %> <%= f.select :class_type,
-            [["Economy", "economy"], ["Business", "business"], ["First Class",
-            "first_class"]], { selected: params[:class_type] } %>
+            <%= f.label :passengers, "Number of Passengers:" %>
+              <%= f.number_field :passengers, min: 1, placeholder: "1" , value: params[:passengers], max: 4 %>
+          </div>
+
+          <div class="label-input">
+            <%= f.label :class_type, "Class Type:" %>
+              <%= f.select :class_type, [["Economy", "economy" ], ["Business", "business" ], ["First
+                Class", "first_class" ]], { selected: params[:class_type] } %>
           </div>
           <div class="label-input submit-button">
-            <%= f.submit "Search Flights", class: "button-primary" %> <% end %>
+            <%= f.submit "Search Flights" , class: "button-primary" %>
+              <% end %>
           </div>
         </div>
 
         <datalist id="source-list">
           <% @cities.each do |city| %>
-          <option value="<%= city %>"><% end %></option>
+            <option value="<%= city %>">
+              <% end %>
+            </option>
         </datalist>
 
         <datalist id="destination-list">
           <% @cities.each do |city| %>
-          <option value="<%= city %>"><% end %></option>
+            <option value="<%= city %>">
+              <% end %>
+            </option>
         </datalist>
 
         <% if flash[:notice] %>
-        <p
-          id="flash-alert"
-          class="flash-alert"
-          style="background: #e1f9e1; color: green"
-        >
-          <%= flash[:notice] %>
-        </p>
-        <% end %> <% if flash[:alert] %>
-        <p class="flash-alert"><%= flash[:alert] %></p>
-        <% end %> <% if @matching_flights.present? %>
-        <h2
-          style="
-            margin-top: 2rem;
-            margin-bottom: 1rem;
-            font-size: 2rem;
-            color: 'black';
-          "
-        >
-          Flight Search Results
-        </h2>
+          <p id="flash-alert" class="flash-alert" style="background: #e1f9e1; color: green">
+            <%= flash[:notice] %>
+          </p>
+        <% end %>
+        <% if flash[:alert] %>
+          <p class="flash-alert">
+              <%= flash[:alert] %>
+          </p>
+        <% end %>
+        <% if @matching_flights.present? %>
+          <h2 style="
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-size: 2rem;
+    color: 'black';
+  ">
+            Flight Search Results
+          </h2>
 
-        <% @matching_flights.each do |flight| %>
-        <div class="flight-card">
-          <div class="flight-card-content">
-            <div class="flight-card-header">
-              <span class="route">
-                <%= flight[:source] %> → <%= flight[:destination] %>
-              </span>
-              <span class="flight-number">
-                Flight <%= flight[:flight_number] %>
-              </span>
-            </div>
-            <div class="flight-card-details">
-              <div class="inner-details">
-                  <strong>Departure:</strong>
-                  <%= flight[:departure_date] %> at <%= flight[:departure_time] %>
+          <% @matching_flights.each do |flight| %>
+            <div class="flight-card">
+              <div class="flight-card-content">
+                <div class="flight-card-header">
+                  <span class="route">
+                    <%= flight[:source] %> → <%= flight[:destination] %>
+                  </span>
+                  <span class="flight-number">
+                    Flight <%= flight[:flight_number] %>
+                  </span>
                 </div>
-                <div class="inner-details">
-                  <strong>Arrival:</strong>
-                  <%= flight[:arrival_date] %> at <%= flight[:arrival_time] %>
+                <div class="flight-card-details">
+                  <div class="inner-details">
+                    <strong>Departure:</strong>
+                    <%= flight[:departure_date] %> at <%= flight[:departure_time] %>
+                  </div>
+                  <div class="inner-details">
+                    <strong>Arrival:</strong>
+                    <%= flight[:arrival_date] %> at <%= flight[:arrival_time] %>
+                  </div>
+                  <div class="inner-details">
+                    <strong>Class:</strong>
+                    <%= flight[:class_type].capitalize %>
+                  </div>
+                  <div class="inner-details">
+                    <strong>Available Seats:</strong>
+                    <%= flight["#{flight[:class_type]}_seats".to_sym] %>
+                  </div>
                 </div>
-              <div class="inner-details">
-                <strong>Class:</strong>
-                <%= flight[:class_type].capitalize %>
-              </div>
-                <div class="inner-details">
-                  <strong>Available Seats:</strong>
-                  <%= flight["#{flight[:class_type]}_seats".to_sym] %>
-                </div>
-              </div>
-              <div class="flight-card-footer">
-               <div class="fare inner-details">
-                <% passenger_count = params[:passengers].presence || 1 %>
-                <div>Total Fare for <%= passenger_count %> passenger(s):</div>
+                <div class="flight-card-footer">
+                  <div class="fare inner-details">
+                    <div>Total Fare for <%= params[:passengers] %> passenger(s):</div>
                     <span class="fare-amount">
                       $<%= sprintf('%.2f', flight[:total_fare]) %>
                     </span>
-                  <div class="fare-breakdown">
+                    <div class="fare-breakdown">
                       <div class="fare-line">
-                        Price per person: <span class="fare-value">$<%= sprintf('%.2f', flight[:price_per_person]) %></span>
+                        Price per person: <span class="fare-value">$<%= sprintf('%.2f',
+                            flight[:price_per_person]) %></span>
                       </div>
                       <div class="fare-line">
                         Base price: <span class="fare-value">$<%= sprintf('%.2f', flight[:base_price]) %></span>
                       </div>
                       <div class="fare-line">
-                        Dynamic Price + Tier-based Price: <span class="fare-value">$<%= sprintf('%.2f', flight[:extra_price]) %></span>
+                        Dynamic Price: <span class="fare-value">$<%= sprintf('%.2f', flight[:extra_price]) %>
+                        </span>
                       </div>
+                    </div>
                   </div>
+                  <%= form_with url: flights_book_path, method: :post, local: true , html: {
+                    id: "booking-form-#{flight[:flight_number]}" } do |bf| %>
+                    <%= hidden_field_tag :flight_number, flight[:flight_number] %>
+                      <%= hidden_field_tag :class_type, flight[:class_type] %>
+                        <%= hidden_field_tag :passengers, params[:passengers] || 1 %>
+                          <%= bf.submit "Book Now" , class: "button-primary" %>
+                            <% end %>
                 </div>
-                <%= form_with url: flights_book_path, method: :post, local: true , html: { id: "booking-form-#{flight[:flight_number]}" } do |bf| %>
-                  <%= hidden_field_tag :flight_number, flight[:flight_number] %>
-                  <%= hidden_field_tag :class_type, flight[:class_type] %>
-                  <%= hidden_field_tag :passengers, params[:passengers] || 1 %>
-                  <%= bf.submit "Book Now", class: "button-primary" %>
-                <% end %>
               </div>
+            </div>
+          <% end %>
+        <% end %>
+        <div id="booking-loader-modal" style="display: none">
+          <div class="loader-backdrop">
+            <div class="loader-box">
+              <div class="spinner"></div>
+              <p style="color: white; margin-top: 1rem">
+                Booking in progress... ⏳
+              </p>
             </div>
           </div>
         </div>
-        <% end %> <% end %>
-      </div>
-    </div>
-    <div id="booking-loader-modal" style="display: none">
-      <div class="loader-backdrop">
-        <div class="loader-box">
-          <div class="spinner"></div>
-          <p style="color: white; margin-top: 1rem">
-            Booking in progress... ⏳
-          </p>
-        </div>
-      </div>
-    </div>
-    <script>
-      document.addEventListener("DOMContentLoaded", function () {
-        const forms = document.querySelectorAll("form[id^='booking-form']");
+        <script>
+          document.addEventListener("DOMContentLoaded", function () {
+            const forms = document.querySelectorAll("form[id^='booking-form']");
 
-        forms.forEach((form) => {
-          form.addEventListener("submit", function (e) {
-            const modal = document.getElementById("booking-loader-modal");
-            const button = form.querySelector("input[type='submit']");
+            forms.forEach((form) => {
+              form.addEventListener("submit", function (e) {
+                const modal = document.getElementById("booking-loader-modal");
+                const button = form.querySelector("input[type='submit']");
 
-            if (modal) modal.style.display = "block";
-            if (button) {
-              button.disabled = true;
-              button.value = "Booking...";
-            }
+                if (modal) modal.style.display = "block";
+                if (button) {
+                  button.disabled = true;
+                  button.value = "Booking...";
+                }
+              });
+            });
           });
-        });
-      });
-    </script>
-  </body>
+        </script>
+</body>
+
 </html>
