@@ -4,6 +4,8 @@ RSpec.describe "Flights", type: :request do
   let(:data_path) { Rails.root.join("spec/testData/testData.txt") }
 
   before do
+    Time.zone = "Asia/Kolkata" 
+    allow(DynamicPricingService).to receive(:calculate_price).and_return(120.0)
     FileUtils.mkdir_p(data_path.dirname)
     File.write(data_path, <<~DATA)
       F101,Bangalore,London,2025-07-12,03:23 PM,2025-07-13,09:23 AM,100,500,50,30,20,50,30,20
@@ -177,7 +179,7 @@ DATA
     context "when searching flights for today with past and future times" do
       let(:today) { Time.zone.today.strftime("%Y-%m-%d") }
       let(:past_time) { (1.hour.ago).strftime("%I:%M %p") }
-      let(:future_time) { (1.hour.from_now).strftime("%I:%M %p") }
+     let(:future_time) { (2.hours.from_now).strftime("%I:%M %p") }
 
       before do
         File.write(data_path, <<~DATA)
