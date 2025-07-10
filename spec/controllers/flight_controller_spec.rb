@@ -186,29 +186,29 @@ RSpec.describe "Flights", type: :request do
       end
     end
      context "when searching flights for today with past and future times" do
+      around do |example|
+        Time.use_zone("Asia/Kolkata") { example.run }
+      end
+
+      let(:today)        { Time.zone.today.strftime("%Y-%m-%d") }
+      let(:past_time)    { (1.hour.ago).strftime("%I:%M %p") }
+      let(:future_time)  { (2.hours.from_now).strftime("%I:%M %p") }
+
       before do
-        Time.use_zone("Asia/Kolkata") do
-          today = Time.zone.today.strftime("%Y-%m-%d")
-          past_time = (1.hour.ago).strftime("%I:%M %p")
-          future_time = (2.hours.from_now).strftime("%I:%M %p")
-
-          File.write(data_path, <<~DATA)
-            F200,Bangalore,London,#{today},#{past_time},#{today},09:23 AM,100,500,50,30,20,50,30,20
-            F201,Bangalore,London,#{today},#{future_time},#{today},09:23 AM,100,500,50,30,20,50,30,20
-          DATA
-
-          post "/flights/search", params: {
-            source: "Bangalore",
-            destination: "London",
-            date: today,
-            class_type: "economy"
-          }
-
-          @today = today
-        end
+        File.write(data_path, <<~DATA)
+          F200,Bangalore,London,#{today},#{past_time},#{today},09:23 AM,100,500,50,30,20,50,30,20
+          F201,Bangalore,London,#{today},#{future_time},#{today},09:23 AM,100,500,50,30,20,50,30,20
+        DATA
       end
 
       it "excludes flights whose departure time has already passed" do
+        post "/flights/search", params: {
+          source: "Bangalore",
+          destination: "London",
+          date: today,
+          class_type: "economy"
+        }
+
         expect(response).to have_http_status(:ok)
         expect(response.body).to include("F201")
         expect(response.body).not_to include("F200")
