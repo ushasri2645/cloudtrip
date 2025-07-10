@@ -230,6 +230,20 @@
       animation: spin 1s linear infinite;
       margin: auto;
     }
+    .fare-breakdown {
+  font-size: 0.9rem;
+  margin-top: 0.3rem;
+  line-height: 1.6;
+}
+
+.fare-line {
+  margin-bottom: 0.25rem;
+}
+
+.fare-value {
+  font-weight: bold;
+  margin-left: 0.3rem;
+}
 
     @keyframes spin {
       0% { transform: rotate(0deg); }
@@ -345,11 +359,10 @@
                   <strong>Arrival:</strong>
                   <%= flight[:arrival_date] %> at <%= flight[:arrival_time] %>
                 </div>
-                
-                <div class="inner-details">
-                  <strong>Class:</strong>
-                  <%= flight[:class_type] %>
-                </div>
+              <div class="inner-details">
+                <strong>Class:</strong>
+                <%= flight[:class_type].capitalize %>
+              </div>
                 <div class="inner-details">
                   <strong>Available Seats:</strong>
                   <%= flight["#{flight[:class_type]}_seats".to_sym] %>
@@ -361,11 +374,17 @@
               <span class="fare-amount">
                 $<%= sprintf('%.2f', flight[:total_fare]) %>
               </span>
-              <div>(Price per person: $<%= sprintf('%.2f', flight[:price_per_person]) %>)</div>
-              <div style="font-size: 0.9rem; margin-top: 0.3rem;">
-                Base price: $<%= sprintf('%.2f', flight[:base_price]) %><br />
-                Dynamic Price: $<%= sprintf('%.2f', flight[:extra_price]) %>
-              </div>
+             <div class="fare-breakdown">
+  <div class="fare-line">
+    Price per person: <span class="fare-value">$<%= sprintf('%.2f', flight[:price_per_person]) %></span>
+  </div>
+  <div class="fare-line">
+    Base price: <span class="fare-value">$<%= sprintf('%.2f', flight[:base_price]) %></span>
+  </div>
+  <div class="fare-line">
+    Dynamic Price: <span class="fare-value">$<%= sprintf('%.2f', flight[:extra_price]) %></span>
+  </div>
+</div>
             </div>
                 <%= form_with url: flights_book_path, method: :post, local: true , html: { id: "booking-form-#{flight[:flight_number]}" } do |bf| %>
                   <%= hidden_field_tag :flight_number, flight[:flight_number] %>
