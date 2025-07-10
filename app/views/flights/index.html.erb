@@ -513,12 +513,6 @@
                   <%= bf.submit "Book Now", class: "button-primary" %>
                 <% end %>
               </div>
-              <%= form_with url: flights_book_path, method: :post, local: true ,
-              html: { id: "booking-form-#{flight[:flight_number]}" } do |bf| %>
-              <%= hidden_field_tag :flight_number, flight[:flight_number] %> <%=
-              hidden_field_tag :class_type, flight[:class_type] %> <%=
-              hidden_field_tag :passengers, params[:passengers] || 1 %> <%=
-              bf.submit "Book Now", class: "button-primary" %> <% end %>
             </div>
           </div>
         </div>
