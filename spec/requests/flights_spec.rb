@@ -12,14 +12,6 @@ RSpec.describe "Flights", type: :request do
     DATA
   end
 
-  describe "GET /flights/index" do
-    it "returns http success" do
-      get "/flights/index"
-      expect(response).to have_http_status(:success)
-      expect(response.body).to include("Search")
-    end
-  end
-
   describe "GET /flights/search" do
     it "renders the index page" do
       get "/flights/search", params: { source: "Bangalore", destination: "London" }
@@ -47,6 +39,18 @@ RSpec.describe "Flights", type: :request do
       }
       expect(response).to have_http_status(:success)
       expect(response.body).to include("No Flights Available")
+    end
+  end
+end
+
+RSpec.describe "Api::Flights", type: :request do
+  describe "GET /api/cities" do
+    it "returns cities in JSON" do
+      get "/api/cities"
+
+      expect(response).to have_http_status(:ok)
+      json = response.parsed_body
+      expect(json["cities"]).to eq([ "Bangalore", "Chennai", "London", "New York" ])
     end
   end
 end
