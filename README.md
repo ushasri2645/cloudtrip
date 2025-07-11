@@ -1,90 +1,55 @@
-# ✈️ CloudTrip – Flight Booking Console Application
+# ✈️ CloudTrip – Flight Booking API
 
-CloudTrip is a simple yet powerful **flight booking system** built with Ruby that enables users to search and book flights based on multiple criteria. The application uses **file-based storage** (`data.txt`) to manage flight availability and booking information.
-
----
-
-## 📌 Features
-
-### Basic Flight Search
-- Search for flights by entering **source** and **destination**.
-- Only flights with **available seats** are shown.
-- If no flights are found, the system displays: `"No Flights Available"`.
-
-### Search by Departure Date
-- Include a **departure date** in your search.
-- View **departure and arrival times** in the results.
-
-### Available Seats Filter
-- System filters out all **fully booked** flights automatically.
-
-### Input Number of Passengers
-- Enter how many passengers you're booking for.
-- Only flights with **enough seats** will be displayed.
-
-### Filter by Class Type
-- Choose between:
-  - Economic
-  - Second
-  - First class
-- Results show only flights with seats available in the selected class.
-
-### Fare Estimation
-- The system calculates **total fare** based on:
-  - Class type
-  - Number of passengers
-  - Base price
-  - Pricing strategy (dynamic pricing)
-
-### Dynamic Pricing Logic
-- Seat-based pricing
-- Date-based pricing
-
-### ✅ Round Trip Support *(Optional)*
-- Book **round trips** with a **5% discount**.
-- Return flights must also match passenger and class criteria.
+CloudTrip is a **Rails backend API** for searching and booking flights. It uses simple file-based storage (`data.txt`) and dynamic pricing logic.
 
 ---
 
-## 📁 File-Based Storage
+## 🛠️ Tech Stack
 
-### 📄 `data.txt` Format:
-```text
-FlightID, "From", "To", DepartureTime, ArrivalTime, ClassType, BasePrice, AvailableSeats
+- **Ruby on Rails (API-only)**
+- File-based storage (no DB)
+- JSON responses
+- CORS-enabled for frontend integration
+
+---
+
+## 🔗 API Endpoints
+
+- `GET /api/cities`  
+  → Loads and returns all unique cities (only loaded once on app start for performance).
+
+---
+
+## 🗃️ Data File Format
+
+```
+flight_number,source,destination,departure_date,departure_time,arrival_date,arrival_time,total_seats,price,economy_seats,business_seats,first_class_seats,economy_total,business_total,first_class_total
 ```
 
-## 🚀 Installation
+Example:
+```
+AI101,New York,London,2025-07-15,09:00 AM,2025-07-15,09:00 PM,200,450.0,50,30,20,100,50,50
+```
 
-Follow these steps to set up and run **CloudTrip** locally:
+---
 
-### 1. Clone the Repository
+## 🚀 Getting Started
 
 ```bash
 git clone https://github.com/ushasri2645/cloudtrip.git
 cd cloudtrip
-```
-
-### 2. Install dependencies 
-```bash
 bundle install
-```
-
-### 3. Run the server
-```bash
 bundle exec rails server
 ```
 
-### 4. Visit 
-```bash
-htttp://localhost:3000
+API runs at:  
 ```
+http://localhost:3000/api
+```
+
+---
 
 ## Contact
 
-Questions, feedback, or contributions are welcome!
-
-- **Author:** Usha Sri Gudikandula
-- **Email:** ugudikandula@everest.engineering
-- **GitHub:** [github.com/ushasri2645](https://github.com/ushasri2645)
-
-Feel free to open an issue or a pull request!
+- **Author:** Usha Sri Gudikandula  
+- **GitHub:** [ushasri2645](https://github.com/ushasri2645)
