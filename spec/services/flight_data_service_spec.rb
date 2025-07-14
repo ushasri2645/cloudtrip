@@ -37,8 +37,9 @@ RSpec.describe FlightDataService do
       Time.use_zone("Asia/Kolkata") do
         FileUtils.mkdir_p(data_path.dirname)
         File.write(data_path, <<~DATA)
-          F101,Bangalore,London,2025-07-12,03:23 PM,4500,100,120,50,60,30,40
-          F102,Bangalore,New York,2025-07-14,10:00 AM,5000,80,100,40,50,20,30
+          F101,Bangalore,London,2025-07-12,03:23 PM,2025-07-13,09:23 AM,100,500,50,30,20,50,30,20
+          F102,Bangalore,New York,2025-07-04,03:23 PM,2025-07-12,09:23 PM,10,900,5,3,2,5,3,2
+          F103,Chennai,London,2025-07-05,03:23 PM,2025-07-12,09:23 PM,50,600,20,20,10,20,20,10
         DATA
 
         stub_const("FlightDataService::DATA_PATH", data_path)
@@ -48,7 +49,7 @@ RSpec.describe FlightDataService do
     it "parses flight data from file into expected hash structure" do
       flights = FlightDataService.read_flights
 
-      expect(flights.size).to eq(2)
+      expect(flights.size).to eq(3)
 
       expect(flights.first).to eq(
         {
@@ -57,18 +58,21 @@ RSpec.describe FlightDataService do
           destination:        "London",
           departure_date:     "2025-07-12",
           departure_time:     "03:23 PM",
-          price:              4500.0,
-          economy_seats:      100,
-          economy_total:      120,
-          business_seats:     50,
-          business_total:     60,
-          first_class_seats:  30,
-          first_class_total:  40
+          arrival_date:       "2025-07-13",
+          arrival_time:       "09:23 AM",
+          total_seats:         100,
+          price:              500,
+          economy_seats:      50,
+          business_seats:     30,
+          first_class_seats:  20,
+          economy_total:      50,
+          business_total:     30,
+          first_class_total:  20
         }
       )
 
-      expect(flights.last[:flight_number]).to eq("F102")
-      expect(flights.last[:price]).to eq(5000.0)
+      expect(flights.last[:flight_number]).to eq("F103")
+      expect(flights.last[:price]).to eq(600)
     end
   end
 end
