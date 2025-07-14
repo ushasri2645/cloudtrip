@@ -53,4 +53,60 @@ RSpec.describe "Api::Flights", type: :request do
       expect(json["cities"]).to eq([ "Bangalore", "Chennai", "London", "New York" ])
     end
   end
+
+  describe "POST /api/search" do
+    context "with valid parameters and matching flight" do
+      before do
+        allow(DynamicPricingService).to receive(:calculate_price).and_return(100.0)
+      end
+
+      it "returns matching flights and message" do
+        post "/api/flights", params: {
+          source: "Bangalore",
+          destination: "London",
+          date: "2025-07-12",
+          class_type: "economy",
+          passengers: 2
+        }
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+
+        expect(json["message"]).to eq("Flights found")
+        expect(json["flights"]).not_to be_empty
+        expect(json["flights"].first["source"]).to eq("Bangalore")
+      end
+    end
+
+    context "with invalid parameters" do
+      it "returns error messages" do
+        post "/api/flights", params: {
+          source: "",
+          destination: "",
+          date: ""
+        }
+
+        expect(response).to have_http_status(:bad_request)
+        json = response.parsed_body
+
+        expect(json["errors"]).to include("Source is missing", "Destination is missing", "Date is missing")
+      end
+    end
+
+    context "when no matching flights are found" do
+      it "returns empty flights and message" do
+        post "/api/flights", params: {
+          source: "Mumbai",
+          destination: "Paris",
+          date: "2025-07-14"
+        }
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+
+        expect(json["message"]).to eq("No matching flights available")
+        expect(json["flights"]).to be_empty
+      end
+    end
+  end
 end
