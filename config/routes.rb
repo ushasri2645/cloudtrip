@@ -9,5 +9,6 @@ Rails.application.routes.draw do
   namespace :api do
     get "cities", to: "flights#cities"
     post "flights", to: "flights#search"
+    post "book", to: "flights#book"
   end
 end
