@@ -32,12 +32,12 @@ class FlightDataService
 
         if fields[0] == flight_number
           seat_index = case class_type
-                       when "economy"     then 1
-                       when "business"    then 2
-                       when "first_class" then 3
-                       else
+          when "economy"     then 1
+          when "business"    then 2
+          when "first_class" then 3
+          else
                          return { updated: false, error: "Invalid class_type: #{class_type}" }
-                       end
+          end
 
           available_seats = fields[seat_index].to_i
 
@@ -68,7 +68,7 @@ class FlightDataService
     end
 
     def load_unique_cities
-      read_flights.flat_map { |f| [f[:source], f[:destination]] }.uniq.sort
+      read_flights.flat_map { |f| [ f[:source], f[:destination] ] }.uniq.sort
     end
 
     private

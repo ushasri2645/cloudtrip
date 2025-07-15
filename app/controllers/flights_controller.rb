@@ -40,10 +40,10 @@ class FlightsController < ApplicationController
     @matching_flights = flights.select do |flight|
       seats_available, price_multiplier =
         case class_type
-        when "economy"     then [flight[:economy_seats], 1.0]
-        when "business"    then [flight[:business_seats], 1.5]
-        when "first_class" then [flight[:first_class_seats], 2.0]
-        else                    [flight[:economy_seats], 1.0]
+        when "economy"     then [ flight[:economy_seats], 1.0 ]
+        when "business"    then [ flight[:business_seats], 1.5 ]
+        when "first_class" then [ flight[:first_class_seats], 2.0 ]
+        else                    [ flight[:economy_seats], 1.0 ]
         end
 
       time_condition = true
@@ -105,10 +105,10 @@ class FlightsController < ApplicationController
       fields = line.strip.split(",")
       if fields[0] == flight_number
         seat_index = case class_type
-                     when "economy"     then 1
-                     when "business"    then 2
-                     when "first_class" then 3
-                     end
+        when "economy"     then 1
+        when "business"    then 2
+        when "first_class" then 3
+        end
 
         available_seats = fields[seat_index].to_i
         if available_seats >= passengers
@@ -158,6 +158,6 @@ class FlightsController < ApplicationController
   end
 
   def load_unique_cities
-    read_flights.flat_map { |f| [f[:source], f[:destination]] }.uniq.sort
+    read_flights.flat_map { |f| [ f[:source], f[:destination] ] }.uniq.sort
   end
 end

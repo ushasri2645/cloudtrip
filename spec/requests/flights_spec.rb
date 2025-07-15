@@ -8,7 +8,7 @@ RSpec.describe "Api::Flights", type: :request do
     FileUtils.mkdir_p(flights_path.dirname)
     FileUtils.mkdir_p(seats_path.dirname)
 
-    today        = Date.today.strftime("%Y-%m-%d")
+    today        = Time.zone.today.strftime("%Y-%m-%d")
     past_time    = (1.hour.ago).strftime("%I:%M %p")
     future_time  = (2.hours.from_now).strftime("%I:%M %p")
 
@@ -80,7 +80,7 @@ RSpec.describe "Api::Flights", type: :request do
     end
 
     it "includes only flights in future for today" do
-      post "/api/flights", params: { source: "Bangalore", destination: "London", date: Date.today.strftime("%Y-%m-%d"), class_type: "economy" }
+      post "/api/flights", params: { source: "Bangalore", destination: "London", date: Time.zone.today.strftime("%Y-%m-%d"), class_type: "economy" }
       json = response.parsed_body
 
       expect(json["flights"].map { |f| f["flight_number"] }).to include("F201")

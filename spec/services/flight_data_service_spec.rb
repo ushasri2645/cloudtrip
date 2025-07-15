@@ -28,7 +28,7 @@ RSpec.describe FlightDataService do
   describe ".load_unique_cities" do
     it "returns unique sorted cities from flight data" do
       cities = FlightDataService.load_unique_cities
-      expect(cities).to eq(["Bangalore", "Chennai", "London", "New York"])
+      expect(cities).to eq([ "Bangalore", "Chennai", "London", "New York" ])
     end
   end
 

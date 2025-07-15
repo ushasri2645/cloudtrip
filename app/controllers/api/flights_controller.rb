@@ -41,19 +41,19 @@ module Api
 
        if result[:updated]
           render json: { updated: true, message: result[:message] }, status: :ok
-        else
+       else
           error_message = result[:error].to_s.downcase
 
           status = if error_message.include?("invalid class_type")
                     :bad_request
-                  elsif error_message.include?("not enough seats")
+          elsif error_message.include?("not enough seats")
                     :unprocessable_entity
-                  else
+          else
                     :internal_server_error
-                  end
+          end
 
           render json: { updated: false, error: result[:error] }, status: status
-        end
+       end
       end
-    end
+  end
 end
