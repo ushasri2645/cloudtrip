@@ -9,7 +9,7 @@ development:
   username: <%= ENV["DB_USERNAME"] %>
   password: <%= ENV["DB_PASSWORD"] %>
   host: <%= ENV["DB_HOST"] %>
-  port: <%= ENV["PORT"] %>
+  port: <%= ENV["DB_PORT"] %>
 
 test:
   <<: *default
@@ -17,4 +17,4 @@ test:
   username: <%= ENV["DB_USERNAME"] %>
   password: <%= ENV["DB_PASSWORD"] %>
   host: <%= ENV["DB_HOST"] %>
-  port: <%= ENV["PORT"] %>
+  port: <%= ENV["DB_PORT"] %>
