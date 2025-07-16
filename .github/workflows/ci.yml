@@ -3,7 +3,7 @@ name: CloudTrip CI
 on:
   pull_request:
   push:
-    branches: [ rails-server, feature/database-configuartion ]
+    branches: [ rails-server ]
 
 jobs:
   lint:
