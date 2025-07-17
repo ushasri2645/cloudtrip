@@ -47,6 +47,11 @@ bundle install
 rails db:create db:migrate
 ```
 
+### Seed data
+```bash
+bin/rake seed:flight_all
+```
+
 ### Run specs
 ```bash
 bundle exec rspec
