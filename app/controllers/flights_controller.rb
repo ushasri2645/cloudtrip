@@ -1,7 +1,9 @@
 require_relative "../services/dynamic_pricing_service"
 
 class FlightsController < ApplicationController
-  DATA_PATH = Rails.configuration.flight_data_file
+  FLIGHTS_DATA_PATH = Rails.configuration.flights_file
+  SEATS_DATA_PATH   = Rails.configuration.seats_file
+
   def index
     @cities = load_unique_cities
   end
@@ -38,30 +40,25 @@ class FlightsController < ApplicationController
     @matching_flights = flights.select do |flight|
       seats_available, price_multiplier =
         case class_type
-        when "economy"
-              [ flight[:economy_seats], 1.0 ]
-        when "business"
-              [ flight[:business_seats], 1.5 ]
-        when "first_class"
-              [ flight[:first_class_seats], 2.0 ]
-        else
-              [ flight[:economy_seats], 1.0 ]
+        when "economy"     then [ flight[:economy_seats], 1.0 ]
+        when "business"    then [ flight[:business_seats], 1.5 ]
+        when "first_class" then [ flight[:first_class_seats], 2.0 ]
+        else                    [ flight[:economy_seats], 1.0 ]
         end
 
-        time_condition = true
-
-        if Date.parse(date) == Time.zone.today
-          now = Time.zone.now
-          flight_datetime_str = "#{flight[:departure_date]} #{flight[:departure_time]}"
-          flight_time = Time.zone.strptime(flight_datetime_str, "%Y-%m-%d %I:%M %p")
-          time_condition = flight_time > now
-        end
+      time_condition = true
+      if Date.parse(date) == Time.zone.today
+        now = Time.zone.now
+        flight_datetime_str = "#{flight[:departure_date]} #{flight[:departure_time]}"
+        flight_time = Time.zone.strptime(flight_datetime_str, "%Y-%m-%d %I:%M %p")
+        time_condition = flight_time > now
+      end
 
       flight[:source].casecmp?(source) &&
-      flight[:destination].casecmp?(destination) &&
-      flight[:departure_date] == date &&
-      seats_available >= passengers &&
-      time_condition
+        flight[:destination].casecmp?(destination) &&
+        flight[:departure_date] == date &&
+        seats_available >= passengers &&
+        time_condition
     end.map do |flight|
       seat_key = "#{class_type}_seats".to_sym
       available_seats = flight[seat_key]
@@ -70,29 +67,25 @@ class FlightsController < ApplicationController
         when "economy"     then flight[:economy_total]
         when "business"    then flight[:business_total]
         when "first_class" then flight[:first_class_total]
-        else flight[:economy_total]
+        else                     flight[:economy_total]
         end
 
       dynamic_price = DynamicPricingService.calculate_price(
-        flight[:price],
-        total_seats,
-        available_seats,
-        flight[:departure_date]
+        flight[:price], total_seats, available_seats, flight[:departure_date]
       )
 
-        extra_price = (dynamic_price + flight[:price] * price_multiplier) - flight[:price]
-        price_per_person = dynamic_price + (flight[:price] * price_multiplier)
-        total_fare = price_per_person * passengers
+      extra_price = (dynamic_price + flight[:price] * price_multiplier) - flight[:price]
+      price_per_person = dynamic_price + (flight[:price] * price_multiplier)
+      total_fare = price_per_person * passengers
 
-
-        flight.merge(
-          total_fare: total_fare,
-          price_per_seat: dynamic_price,
-          price_per_person: price_per_person,
-          base_price: flight[:price],
-          extra_price: extra_price,
-          class_type: class_type || "economy"
-        )
+      flight.merge(
+        total_fare: total_fare,
+        price_per_seat: dynamic_price,
+        price_per_person: price_per_person,
+        base_price: flight[:price],
+        extra_price: extra_price,
+        class_type: class_type || "economy"
+      )
     end
 
     flash.now[:alert] = "No Flights Available" if @matching_flights.empty?
@@ -104,17 +97,19 @@ class FlightsController < ApplicationController
     class_type    = params[:class_type] || "economy"
     passengers    = params["passengers"].present? ? params[:passengers].to_i : 1
 
-    lines = File.readlines(DATA_PATH)
+    lines = File.readlines(SEATS_DATA_PATH)
     updated_lines = []
     updated = false
+
     lines.each do |line|
       fields = line.strip.split(",")
       if fields[0] == flight_number
         seat_index = case class_type
-        when "economy"     then 9
-        when "business"    then 10
-        when "first_class" then 11
+        when "economy"     then 1
+        when "business"    then 2
+        when "first_class" then 3
         end
+
         available_seats = fields[seat_index].to_i
         if available_seats >= passengers
           fields[seat_index] = (available_seats - passengers).to_s
@@ -126,35 +121,38 @@ class FlightsController < ApplicationController
       end
       updated_lines << fields.join(",")
     end
+
     if updated
-      File.open(DATA_PATH, "w") do |file|
-      file.puts updated_lines
+      File.open(SEATS_DATA_PATH, "w") do |file|
+        file.puts updated_lines
       end
     end
-    sleep 5
+
+    sleep 5 unless Rails.env.test?
     redirect_to root_path
   end
 
   private
+
   def read_flights
-    File.readlines(DATA_PATH).map do |line|
+    File.readlines(FLIGHTS_DATA_PATH).map do |line|
       fields = line.strip.split(",")
       {
-        flight_number: fields[0],
-        source: fields[1],
-        destination: fields[2],
-        departure_date: fields[3],
-        departure_time: fields[4],
-        arrival_date: fields[5],
-        arrival_time: fields[6],
-        total_seats: fields[7].to_i,
-        price: fields[8].to_f,
-        economy_seats: fields[9].to_i,
-        business_seats: fields[10].to_i,
-        first_class_seats: fields[11].to_i,
-        economy_total: fields[12].to_i,
-        business_total: fields[13].to_i,
-        first_class_total: fields[14].to_i
+        flight_number:      fields[0],
+        source:             fields[1],
+        destination:        fields[2],
+        departure_date:     fields[3],
+        departure_time:     fields[4],
+        arrival_date:       fields[5],
+        arrival_time:       fields[6],
+        total_seats:        fields[7].to_i,
+        price:              fields[8].to_f,
+        economy_seats:      fields[9].to_i,
+        business_seats:     fields[10].to_i,
+        first_class_seats:  fields[11].to_i,
+        economy_total:      fields[12].to_i,
+        business_total:     fields[13].to_i,
+        first_class_total:  fields[14].to_i
       }
     end
   end

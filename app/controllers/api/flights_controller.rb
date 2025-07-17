@@ -1,6 +1,8 @@
 module Api
   class FlightsController < ApplicationController
-    DATA_PATH = Rails.configuration.flight_data_file
+    FLIGHTS_DATA_PATH = Rails.configuration.flights_file
+    SEATS_DATA_PATH   = Rails.configuration.seats_file
+
     def cities
       cities = FlightDataService.load_unique_cities
       render json: { cities: cities }, status: :ok
@@ -35,47 +37,23 @@ module Api
       class_type    = params["flight"]["class_type"] || "economy"
       passengers    = params["passengers"].present? ? params["passengers"].to_i : 1
 
-      lines = File.readlines(DATA_PATH)
-      updated_lines = []
-      updated = false
+      result = FlightDataService.update_seat_availability(flight_number, class_type, passengers)
 
-      lines.each do |line|
-        fields = line.strip.split(",")
+       if result[:updated]
+          render json: { updated: true, message: result[:message] }, status: :ok
+       else
+          error_message = result[:error].to_s.downcase
 
-        if fields[0] == flight_number
-          seat_index = case class_type
-          when "economy"     then 9
-          when "business"    then 10
-          when "first_class" then 11
+          status = if error_message.include?("invalid class_type")
+                    :bad_request
+          elsif error_message.include?("not enough seats")
+                    :unprocessable_entity
           else
-            return render json: { updated: false, error: "Invalid class_type: #{class_type}" }, status: :bad_request
+                    :internal_server_error
           end
 
-          available_seats = fields[seat_index].to_i
-
-          if available_seats >= passengers
-            fields[seat_index] = (available_seats - passengers).to_s
-          else
-            return render json: {
-              updated: false,
-              error: "Not enough seats available in #{class_type}. Requested: #{passengers}, Available: #{available_seats}"
-            }, status: :unprocessable_entity
-          end
-
-          updated = true
-        end
-
-        updated_lines << fields.join(",")
+          render json: { updated: false, error: result[:error] }, status: status
+       end
       end
-
-      if updated
-        File.open(DATA_PATH, "w") do |file|
-          file.puts updated_lines
-        end
-        render json: { updated: true, message: "Booking successful!" }, status: :ok
-      else
-        render json: { updated: false, error: "Some thing went wrong while booking flight." }, status: :internal_server_error
-      end
-    end
   end
 end

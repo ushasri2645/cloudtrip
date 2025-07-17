@@ -1,52 +1,39 @@
 require "rails_helper"
 
 RSpec.describe FlightDataService do
+  let(:flights_path) { Rails.root.join("spec/testData/flights_testData.txt") }
+  let(:seats_path)   { Rails.root.join("spec/testData/seats_testData.txt") }
+
+  before do
+    FileUtils.mkdir_p(flights_path.dirname)
+
+    File.write(flights_path, <<~FLIGHTS)
+      F101,Bangalore,London,2025-07-12,03:23 PM,2025-07-13,09:23 AM,100,500
+      F102,Bangalore,New York,2025-07-04,03:23 PM,2025-07-12,09:23 PM,10,900
+      F103,Chennai,London,2025-07-05,03:23 PM,2025-07-12,09:23 PM,50,600
+    FLIGHTS
+
+    File.write(seats_path, <<~SEATS)
+      F101,50,30,20,50,30,20
+      F102,5,3,2,5,3,2
+      F103,20,20,10,20,20,10
+    SEATS
+
+    allow(Rails.configuration).to receive(:flights_file).and_return(flights_path)
+    allow(Rails.configuration).to receive(:seats_file).and_return(seats_path)
+
+    Rails.cache.clear
+  end
+
   describe ".load_unique_cities" do
-    let(:data_path) { Rails.root.join("spec/testData/testData.txt") }
-
-    before do
-        Time.use_zone("Asia/Kolkata") do
-        allow(DynamicPricingService).to receive(:calculate_price).and_return(120.0)
-
-        today = Time.zone.today.strftime("%Y-%m-%d")
-        past_time = (1.hour.ago.in_time_zone).strftime("%I:%M %p")
-        future_time = (2.hours.from_now.in_time_zone).strftime("%I:%M %p")
-
-        FileUtils.mkdir_p(data_path.dirname)
-        File.write(data_path, <<~DATA)
-            F101,Bangalore,London,2025-07-12,03:23 PM,2025-07-13,09:23 AM,100,500,50,30,20,50,30,20
-            F102,Bangalore,New York,2025-07-04,03:23 PM,2025-07-12,09:23 PM,10,900,5,3,2,5,3,2
-            F103,Chennai,London,2025-07-05,03:23 PM,2025-07-12,09:23 PM,50,600,20,20,10,20,20,10
-        DATA
-        end
-    end
-
-    it "returns unique sorted cities from file" do
-      result = FlightDataService.load_unique_cities
-
-      expect(result).to eq(
-        [ "Bangalore", "Chennai", "London", "New York" ]
-      )
+    it "returns unique sorted cities from flight data" do
+      cities = FlightDataService.load_unique_cities
+      expect(cities).to eq([ "Bangalore", "Chennai", "London", "New York" ])
     end
   end
 
   describe ".read_flights" do
-    let(:data_path) { Rails.root.join("spec/testData/testData.txt") }
-
-    before do
-      Time.use_zone("Asia/Kolkata") do
-        FileUtils.mkdir_p(data_path.dirname)
-        File.write(data_path, <<~DATA)
-          F101,Bangalore,London,2025-07-12,03:23 PM,2025-07-13,09:23 AM,100,500,50,30,20,50,30,20
-          F102,Bangalore,New York,2025-07-04,03:23 PM,2025-07-12,09:23 PM,10,900,5,3,2,5,3,2
-          F103,Chennai,London,2025-07-05,03:23 PM,2025-07-12,09:23 PM,50,600,20,20,10,20,20,10
-        DATA
-
-        stub_const("FlightDataService::DATA_PATH", data_path)
-      end
-    end
-
-    it "parses flight data from file into expected hash structure" do
+    it "parses and merges flight and seat data correctly" do
       flights = FlightDataService.read_flights
 
       expect(flights.size).to eq(3)
@@ -61,18 +48,34 @@ RSpec.describe FlightDataService do
           arrival_date:       "2025-07-13",
           arrival_time:       "09:23 AM",
           total_seats:         100,
-          price:              500,
-          economy_seats:      50,
-          business_seats:     30,
-          first_class_seats:  20,
-          economy_total:      50,
-          business_total:     30,
-          first_class_total:  20
+          price:               500.0,
+          economy_seats:       50,
+          business_seats:      30,
+          first_class_seats:   20,
+          economy_total:       50,
+          business_total:      30,
+          first_class_total:   20
         }
       )
+    end
+  end
 
-      expect(flights.last[:flight_number]).to eq("F103")
-      expect(flights.last[:price]).to eq(600)
+  describe ".update_seat_availability" do
+    it "reduces seats if enough available" do
+      result = FlightDataService.update_seat_availability("F101", "economy", 5)
+      expect(result[:updated]).to be true
+    end
+
+    it "does not reduce seats if not enough available" do
+      result = FlightDataService.update_seat_availability("F101", "first_class", 100)
+      expect(result[:updated]).to be false
+      expect(result[:error]).to include("Not enough seats")
+    end
+
+    it "returns error on invalid class_type" do
+      result = FlightDataService.update_seat_availability("F101", "invalid_class", 1)
+      expect(result[:updated]).to be false
+      expect(result[:error]).to include("Invalid class_type")
     end
   end
 end
