@@ -16,7 +16,6 @@ RSpec.describe FlightSeat, type: :model do
   )
 }
 
-  # Ensure unique seat class names to avoid duplicate error
   let(:seat_class) { SeatClass.create!(name: "Economy #{SecureRandom.hex(4)}") }
 
   after(:each) do
