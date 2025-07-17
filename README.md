@@ -13,32 +13,46 @@ CloudTrip is a **Rails backend API** for searching and booking flights. It uses 
 
 ---
 
-## 🔗 API Endpoints
+### Schema Overview
 
-- `GET /api/cities`  
-  → Loads and returns all unique cities (only loaded once on app start for performance).
+- **Airport**: Holds city and code information.
+- **Flight**: Stores flight details like source, destination, dates, and times.
+- **SeatClass**: Represents seat types (Economy, Business, First Class).
+- **FlightSeat**: Manages available seats for each class in a specific flight.
+- **ClassPricing**: Stores pricing multipliers for each seat class per flight.
 
----
+### ✅ Validations & Specs
 
-## 🗃️ Data File Format
+All models include:
 
-```
-flight_number,source,destination,departure_date,departure_time,arrival_date,arrival_time,total_seats,price,economy_seats,business_seats,first_class_seats,economy_total,business_total,first_class_total
-```
-
-Example:
-```
-AI101,New York,London,2025-07-15,09:00 AM,2025-07-15,09:00 PM,200,450.0,50,30,20,100,50,50
-```
+- **Validations** (e.g., presence, format, time logic)
+- **RSpec model specs** (e.g., valid/invalid states)
 
 ---
+
 
 ## 🚀 Getting Started
 
 ```bash
 git clone https://github.com/ushasri2645/cloudtrip.git
 cd cloudtrip
+```
+### Installation
+```bash
 bundle install
+```
+
+### Set up DB
+```bash
+rails db:create db:migrate
+```
+
+### Run specs
+```bash
+bundle exec rspec
+```
+### Run app
+```bash
 bundle exec rails server
 ```
 
