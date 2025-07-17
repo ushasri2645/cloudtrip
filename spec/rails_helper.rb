@@ -24,7 +24,7 @@ require 'rspec/rails'
 
 RSpec.configure do |config|
   # Remove this line to enable support for ActiveRecord
-  config.use_active_record = false
+  config.use_active_record = true
 
   # If you enable ActiveRecord support you should uncomment these lines,
   # note if you'd prefer not to run each example within a transaction, you
@@ -54,6 +54,12 @@ RSpec.configure do |config|
 
   # Filter lines from Rails gems in backtraces.
   config.filter_rails_from_backtrace!
-  # arbitrary gems may also be filtered via:
-  # config.filter_gems_from_backtrace("gem name")
+ # arbitrary gems may also be filtered via:
+ # config.filter_gems_from_backtrace("gem name")
+    Shoulda::Matchers.configure do |config|
+      config.integrate do |with|
+        with.test_framework :rspec
+        with.library :rails
+      end
+    end
 end
