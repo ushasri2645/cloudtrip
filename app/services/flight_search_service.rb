@@ -23,7 +23,7 @@ class FlightSearchService
     flights_on_date = filter_by_date(all_flights_between)
 
     if flights_on_date.empty?
-      return error("No flights available on #{@date.strftime('%d-%b-%Y')} between #{@source.titleize} and #{@destination.titleize}.", 404)
+      return error("No flights available on #{@date.strftime('%d-%b-%Y')} between #{@source.titleize} and #{@destination.titleize}.", 200)
     end
 
     available_flights = filter_by_available_seats(flights_on_date)
