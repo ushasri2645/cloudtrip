@@ -17,7 +17,6 @@ SimpleCov.start do
   enable_coverage :branch
   primary_coverage :branch
   add_filter "/spec/"
-  add_filter "app/controllers"
   add_group "Controllers", "app/controllers/api"
   add_group "Models", "app/models"
   add_group "Helpers", "app/helpers"
