@@ -16,8 +16,8 @@ RSpec.describe "Api::Airports", type: :request do
 
       expect(response).to have_http_status(:ok)
 
-      json = JSON.parse(response.body)
-      expect(json["cities"]).to eq(["Delhi", "Mumbai"])
+      json = response.parsed_body
+      expect(json["cities"]).to eq([ "Delhi", "Mumbai" ])
     end
   end
 end
