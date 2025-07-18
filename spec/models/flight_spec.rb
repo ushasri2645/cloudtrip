@@ -1,6 +1,13 @@
 require 'rails_helper'
 
 RSpec.describe Flight, type: :model do
+  after(:each) do
+    FlightSeat.delete_all
+  ClassPricing.delete_all
+  Flight.delete_all
+  Airport.delete_all
+  end
+
   it "is valid with all required attributes" do
     airport1 = Airport.create(city: "Chennai", code: "MAA")
     airport2 = Airport.create(city: "Mumbai", code: "BOM")
