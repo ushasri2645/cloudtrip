@@ -1,94 +1,134 @@
 class FlightSearchService
   def initialize(source, destination, date, class_type, passengers)
-    @source = source
-    @destination = destination
-    @date = date
-    @class_type = class_type
+    @source = source.strip.downcase
+    @destination = destination.strip.downcase
+    @date = date.to_date
+    @class_type = class_type.strip.downcase
     @passengers = passengers
   end
 
   def search_flights
-    now = Time.zone.now
-    today = Time.zone.today
+    return error("Invalid class type", 400) unless seat_class
 
-    flights = FlightDataService.read_flights
-
-    matching_flights = flights.select do |flight|
-      available_seats, multiplier = available_seats_and_multiplier(flight)
-
-      next false unless valid_flight_date?(flight, now, today)
-      next false unless flight[:source].casecmp?(@source) &&
-                       flight[:destination].casecmp?(@destination) &&
-                       flight[:departure_date] == @date &&
-                       available_seats >= @passengers
-
-      true
+    unless source_airport && destination_airport
+      return error("We are not serving this source and destination.", 400)
     end
 
-    if matching_flights.empty?
-      return { flights: [], message: "No matching flights available" }
+    all_flights_between = fetch_all_flights_between_cities
+
+    if all_flights_between.empty?
+      return error("There are no flights operated from this source to destination.", 404)
     end
 
-    available_flights = matching_flights.map do |flight|
-      calculate_fare(flight)
+    flights_on_date = filter_by_date(all_flights_between)
+
+    if flights_on_date.empty?
+      return error("No flights available on #{@date.strftime('%d-%b-%Y')} between #{@source.titleize} and #{@destination.titleize}.", 404)
     end
 
-    { flights: available_flights, message: "Flights found" }
+    available_flights = filter_by_available_seats(flights_on_date)
+
+
+    if available_flights.empty?
+      return error("All flights on #{@date.strftime('%d-%b-%Y')} between #{@source.titleize} and #{@destination.titleize} are fully booked.", 409)
+    end
+
+    formatted_flights = available_flights.map { |flight| build_flight_result(flight) }
+    success(formatted_flights)
   end
 
   private
 
-  def available_seats_and_multiplier(flight)
-    [ available_seats(flight), price_multiplier ]
+
+  def seat_class
+    class_type_normalized = @class_type.to_s.strip.downcase.gsub("_", " ")
+    SeatClass.all.find do |sc|
+      sc.name.downcase == class_type_normalized
+    end
   end
 
-  def available_seats(flight)
-    flight[:"#{@class_type}_seats"] || 0
+  def source_airport
+    @source_airport ||= Airport.find_by("LOWER(city) = ?", @source)
   end
 
-  def price_multiplier
-    {
-      "economy" => 1.0,
-      "business" => 1.5,
-      "first_class" => 2.0
-    }[@class_type] || 1.0
+  def destination_airport
+    @destination_airport ||= Airport.find_by("LOWER(city) = ?", @destination)
   end
 
-  def total_seats(flight)
-    flight[:"#{@class_type}_total"] || flight[:economy_total]
+
+  def fetch_all_flights_between_cities
+    Flight.includes(:flight_seats, :class_pricings, :source, :destination)
+          .where(source: source_airport, destination: destination_airport)
   end
 
-  def valid_flight_date?(flight, now, today)
-    return true unless Date.parse(@date) == today
-
-    departure_str = "#{flight[:departure_date]} #{flight[:departure_time]}"
-    return false unless Date._strptime(departure_str, "%Y-%m-%d %I:%M %p")
-
-    departure_time = Time.zone.strptime(departure_str, "%Y-%m-%d %I:%M %p")
-    departure_time > now
+  def filter_by_date(flights)
+    flights.select { |f| f.departure_datetime.to_date == @date }
   end
 
-  def calculate_fare(flight)
-    seats_available = available_seats(flight)
-    seats_total = total_seats(flight)
-    base_price = flight[:price]
+  def filter_by_available_seats(flights)
+    now = Time.zone.now
+    today = Time.zone.today
 
-    dynamic_price = DynamicPricingService.calculate_price(
-      base_price, seats_total, seats_available, flight[:departure_date]
+    flights.select do |flight|
+      seat = find_seat(flight)
+      seat && seat.available_seats >= @passengers && valid_today_flight?(flight, now, today)
+    end
+  end
+
+  def find_seat(flight)
+    flight.flight_seats.find { |fs| fs.seat_class_id == seat_class.id }
+  end
+
+  def find_pricing(flight)
+    flight.class_pricings.find { |cp| cp.seat_class_id == seat_class.id }
+  end
+
+  def valid_today_flight?(flight, now, today)
+    return true unless @date == today
+    flight.departure_datetime > now
+  end
+
+  def calculate_dynamic_price(flight, seat)
+    DynamicPricingService.calculate_price(
+      flight.price,
+      seat.total_seats,
+      seat.available_seats,
+      flight.departure_datetime.to_date
     )
+  end
 
-    multiplier = price_multiplier
+  def build_flight_result(flight)
+    seat = find_seat(flight)
+    pricing = find_pricing(flight)
+    base_price = flight.price
+    multiplier = pricing&.multiplier || 1.0
+
+    dynamic_price = calculate_dynamic_price(flight, seat)
     price_per_person = dynamic_price + (base_price * multiplier)
     total_fare = price_per_person * @passengers
     extra_price = price_per_person - base_price
 
-    flight.merge(
-      total_fare:        total_fare.round(2),
-      price_per_seat:    dynamic_price.round(2),
-      price_per_person:  price_per_person.round(2),
-      base_price:        base_price.round(2),
-      extra_price:       extra_price.round(2),
-      class_type:        @class_type
-    )
+    {
+      flight_number:      flight.flight_number,
+      departure_date: flight.departure_datetime,
+      arrival_date:   flight.arrival_datetime,
+      source:             flight.source.city,
+      destination:        flight.destination.city,
+      class_type:         @class_type,
+      base_price:         base_price.round(2),
+      price_per_seat:     dynamic_price.round(2),
+      price_per_person:   price_per_person.round(2),
+      total_fare:         total_fare.round(2),
+      extra_price:        extra_price.round(2),
+      available_seats:    seat.available_seats
+    }
+  end
+
+  def error(message, status)
+    { flights: [], message: message, status: status }
+  end
+
+  def success(flights)
+    { flights: flights, message: "Flights found", status: 200 }
   end
 end

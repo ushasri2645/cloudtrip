@@ -1,9 +1,11 @@
 require 'rails_helper'
 
 RSpec.describe Flight, type: :model do
-  after(:all) do
-    Flight.delete_all
-    Airport.delete_all
+  after(:each) do
+    FlightSeat.delete_all
+  ClassPricing.delete_all
+  Flight.delete_all
+  Airport.delete_all
   end
 
   it "is valid with all required attributes" do

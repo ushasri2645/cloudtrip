@@ -1,93 +1,107 @@
+require 'rails_helper'
 
-require "rails_helper"
+RSpec.describe FlightSearchService do
+  before(:all) do
+    @economy_class = SeatClass.create!(name: "Economy")
 
-RSpec.describe FlightSearchService, type: :service do
-  include ActiveSupport::Testing::TimeHelpers
+    @source_airport = Airport.create!(city: "Hyderabad", code: "HYD")
+    @destination_airport = Airport.create!(city: "Delhi", code: "DEL")
 
-  let(:source)       { "Bangalore" }
-  let(:destination)  { "Hyderabad" }
-  let(:class_type)   { "economy" }
-  let(:passengers)   { 2 }
-  let(:base_price)   { 1_000.0 }
-  let(:dynamic_fee)  { 50.0 }
-  let(:travel_date)  { "2025-07-15" }
-  let(:frozen_now)   { Time.zone.parse("2025-07-14 12:00") }
+    @flight = Flight.create!(
+      flight_number: "AI123",
+      source: @source_airport,
+      destination: @destination_airport,
+      departure_datetime: 2.days.from_now.change(hour: 10),
+      arrival_datetime: 2.days.from_now.change(hour: 12),
+      total_seats: 100,
+      price: 3000
+    )
 
-  let(:flight_hash) do
-    {
-      source:            source,
-      destination:       destination,
-      departure_date:    travel_date,
-      departure_time:    "08:00 AM",
-      economy_seats:     10,
-      economy_total:     20,
-      business_seats:    5,
-      business_total:    10,
-      first_class_seats: 2,
-      first_class_total: 2,
-      price:             base_price
-    }
+    @flight_seat = FlightSeat.create!(
+      flight: @flight,
+      seat_class: @economy_class,
+      total_seats: 100,
+      available_seats: 20
+    )
+
+    @class_pricing = ClassPricing.create!(
+      flight: @flight,
+      seat_class: @economy_class,
+      multiplier: 1
+    )
   end
 
-  before do
-    travel_to(frozen_now)
-
-    allow(FlightDataService).to receive(:read_flights).and_return([ flight_hash ])
-    allow(DynamicPricingService).to receive(:calculate_price).and_return(dynamic_fee)
+  after(:all) do
+    ClassPricing.destroy_all
+    FlightSeat.destroy_all
+    Flight.destroy_all
+    Airport.destroy_all
+    SeatClass.destroy_all
   end
 
+  describe "#search_flights" do
+    context "when all inputs are valid" do
+      it "returns available flights" do
+        service = FlightSearchService.new("Hyderabad", "Delhi", 2.days.from_now, "Economy", 2)
+        result = service.search_flights
+        expect(result[:status]).to eq(200)
+        expect(result[:flights]).not_to be_empty
+        expect(result[:flights][0][:flight_number]).to eq("AI123")
+        expect(result[:message]).to eq("Flights found")
+      end
+    end
 
-  subject do
-    described_class.new(source, destination, travel_date, class_type, passengers)
-                   .search_flights
-  end
+    context "when invalid class type is provided" do
+      it "returns error with 400" do
+        service = FlightSearchService.new("Hyderabad", "Delhi", 2.days.from_now, "Luxury", 2)
+        result = service.search_flights
 
-  context "when a matching flight exists" do
-    it "returns it with accurate fare calculations" do
-      result = subject
+        expect(result[:status]).to eq(400)
+        expect(result[:message]).to eq("Invalid class type")
+      end
+    end
 
-      expect(result[:message]).to eq("Flights found")
-      expect(result[:flights].size).to eq(1)
+    context "when source or destination city is not served" do
+      it "returns error with 400" do
+        service = FlightSearchService.new("UnknownCity", "Delhi", 2.days.from_now, "Economy", 2)
+        result = service.search_flights
 
-      flight = result[:flights].first
-      expect(flight[:class_type]).to           eq(class_type)
-      expect(flight[:price_per_seat]).to       eq(dynamic_fee.round(2))
-      expect(flight[:price_per_person]).to     eq((dynamic_fee + base_price).round(2))
-      expect(flight[:total_fare]).to           eq(((dynamic_fee + base_price) * passengers).round(2))
-      expect(flight[:extra_price]).to          eq(dynamic_fee.round(2))
+        expect(result[:status]).to eq(400)
+        expect(result[:message]).to eq("We are not serving this source and destination.")
+      end
+    end
+
+    context "when there are no flights between source and destination" do
+      it "returns 404 error" do
+        other_airport = Airport.create!(city: "Mumbai", code: "BOM")
+        service = FlightSearchService.new("Mumbai", "Delhi", 2.days.from_now, "Economy", 2)
+        result = service.search_flights
+
+        expect(result[:status]).to eq(404)
+        expect(result[:message]).to eq("There are no flights operated from this source to destination.")
+
+        other_airport.destroy
+      end
+    end
+
+    context "when there are no flights on the selected date" do
+      it "returns 404 error" do
+        service = FlightSearchService.new("Hyderabad", "Delhi", 5.days.from_now, "Economy", 2)
+        result = service.search_flights
+
+        expect(result[:status]).to eq(404)
+        expect(result[:message]).to include("No flights available on")
+      end
+    end
+
+    context "when requesting more passengers than available seats" do
+      it "returns 409 error" do
+        service = FlightSearchService.new("Hyderabad", "Delhi", 2.days.from_now, "Economy", 25)
+        result = service.search_flights
+
+        expect(result[:status]).to eq(409)
+        expect(result[:message]).to include("fully booked")
+      end
     end
   end
-
-  context "when the flight has already departed today" do
-    let(:travel_date) { frozen_now.to_date.to_s }
-    let(:flight_hash) { super().merge(departure_time: "08:00 AM") }
-
-    it "returns no matching flights" do
-      result = subject
-      expect(result[:flights]).to be_empty
-      expect(result[:message]).to eq("No matching flights available")
-    end
-  end
-
-  context "when not enough seats are available" do
-    let(:passengers) { 12 }
-
-    it "returns no matching flights" do
-      result = subject
-      expect(result[:flights]).to be_empty
-    end
-  end
-
- context "when source or destination do not match" do
-  let(:destination) { "Mumbai" }
-  let(:flight_hash) do
-    super().merge(destination: "Hyderabad")
-  end
-
-    it "returns no matching flights" do
-        result = subject
-        expect(result[:flights]).to be_empty
-        expect(result[:message]).to eq("No matching flights available")
-    end
- end
 end

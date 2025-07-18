@@ -9,4 +9,8 @@ RSpec.describe ClassPricing, type: :model do
   it { should belong_to(:seat_class) }
 
   it { should validate_presence_of(:multiplier) }
+
+  after do
+    ClassPricing.delete_all
+  end
 end
