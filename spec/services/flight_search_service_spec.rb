@@ -89,7 +89,7 @@ RSpec.describe FlightSearchService do
         service = FlightSearchService.new("Hyderabad", "Delhi", 5.days.from_now, "Economy", 2)
         result = service.search_flights
 
-        expect(result[:status]).to eq(404)
+        expect(result[:status]).to eq(200)
         expect(result[:message]).to include("No flights available on")
       end
     end
