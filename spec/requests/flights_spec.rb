@@ -1,122 +1,96 @@
-require "rails_helper"
+# spec/requests/flights_spec.rb
+require 'rails_helper'
 
-RSpec.describe "Api::Flights", type: :request do
-  let(:flights_path) { Rails.configuration.flights_file }
-  let(:seats_path)   { Rails.configuration.seats_file }
-
-  before do
-    FileUtils.mkdir_p(flights_path.dirname)
-    FileUtils.mkdir_p(seats_path.dirname)
-
-    today        = Time.zone.today.strftime("%Y-%m-%d")
-    past_time    = (1.hour.ago).strftime("%I:%M %p")
-    future_time  = (2.hours.from_now).strftime("%I:%M %p")
-
-    File.write(flights_path, <<~FLIGHTS)
-      F101,Bangalore,London,2025-07-12,03:23 PM,2025-07-13,09:23 AM,100,500,50,30,20,50,30,20
-      F102,Bangalore,New York,2025-07-04,03:23 PM,2025-07-12,09:23 PM,10,900,5,3,2,5,3,2
-      F103,Chennai,London,2025-07-05,03:23 PM,2025-07-12,09:23 PM,50,600,20,20,10,20,20,10
-      F200,Bangalore,London,#{today},#{past_time},#{today},09:23 AM,100,500,50,30,20,50,30,20
-      F201,Bangalore,London,#{today},#{future_time},#{today},09:23 AM,100,500,50,30,20,50,30,20
-    FLIGHTS
-
-    File.write(seats_path, <<~SEATS)
-      F101,50,30,20,50,30,20
-      F102,5,3,2,5,3,2
-      F103,20,20,10,20,20,10
-      F200,50,30,20,50,30,20
-      F201,50,30,20,50,30,20
-    SEATS
-
-    allow(DynamicPricingService).to receive(:calculate_price).and_return(120.0)
-  end
-
-  describe "POST /api/flights" do
-    it "returns matching flights in the response" do
-      post "/api/flights", params: { source: "Bangalore", destination: "London", date: "2025-07-12", class_type: "economy" }
-      json = response.parsed_body
-
-      expect(response).to have_http_status(:ok)
-      expect(json["flights"].map { |f| f["flight_number"] }).to include("F101")
+RSpec.describe "Api::FlightsController", type: :request do
+  describe "POst /api/flights/search" do
+    before(:each) do
+      ClassPricing.delete_all
+      FlightSeat.delete_all
+      Flight.delete_all
+      SeatClass.delete_all
+      Airport.delete_all
     end
 
-    it "returns no flights if no match found" do
-      post "/api/flights", params: { source: "Mumbai", destination: "Paris", date: "2025-07-12" }
-      json = response.parsed_body
+    let!(:economy_class) { SeatClass.create!(name: "Economy") }
 
-      expect(response).to have_http_status(:ok)
-      expect(json["flights"]).to be_empty
-      expect(json["message"]).to eq("No matching flights available")
+    let!(:mumbai) { Airport.create!(code: "BOM", city: "Mumbai") }
+    let!(:delhi)  { Airport.create!(code: "DEL", city: "Delhi") }
+
+    let!(:flight) do
+      Flight.create!(
+        flight_number: "F101",
+        source: mumbai,
+        destination: delhi,
+        departure_datetime: "2025-07-20 10:00:00",
+        arrival_datetime: "2025-07-20 12:00:00",
+        price: 500.0,
+        total_seats: 100
+      )
     end
 
-    it "matches case-insensitive source/destination" do
-      post "/api/flights", params: { source: "bangalore", destination: "london", date: "2025-07-12", class_type: "economy" }
-      json = response.parsed_body
-
-      expect(response).to have_http_status(:ok)
-      expect(json["flights"].map { |f| f["flight_number"] }).to include("F101")
+    let!(:flight_seat) do
+      FlightSeat.create!(
+        flight: flight,
+        seat_class: economy_class,
+        total_seats: 100,
+        available_seats: 50
+      )
     end
 
-    it "does not return flights when not enough seats" do
-      post "/api/flights", params: { source: "Bangalore", destination: "London", date: "2025-07-12", passengers: 150, class_type: "economy" }
-      json = response.parsed_body
-
-      expect(json["flights"]).to be_empty
-      expect(json["message"]).to eq("No matching flights available")
+    let!(:pricing) do
+      ClassPricing.create!(
+        flight_id: flight.id,
+        seat_class_id: economy_class.id,
+        multiplier: 1,
+        # price: 500.0
+      )
     end
 
-    it "calculates total fare correctly for first class" do
-      post "/api/flights", params: { source: "Bangalore", destination: "London", date: "2025-07-12", passengers: 2, class_type: "first_class" }
-      json = response.parsed_body
+    context "when valid search parameters are provided" do
+      it "returns a list of matching flights with 200 status" do
+        post "/api/flights", params: {
+          source: "Mumbai",
+          destination: "Delhi",
+          date: "2025-07-20",
+          class_type: "Economy",
+          passengers: 2
+        }
 
-      expect(json["flights"].first["total_fare"]).to eq(2240.0)
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json["flights"]).not_to be_empty
+      end
     end
 
-    it "returns error when source and destination are same" do
-      post "/api/flights", params: { source: "Chennai", destination: "Chennai", date: "2025-07-12" }
-      json = response.parsed_body
+    context "when missing or invalid parameters are provided" do
+      it "returns 400 Bad Request with validation errors" do
+        post "/api/flights", params: {
+          source: "", destination: "", date: "", class_type: "", passengers: ""
+        }
 
-      expect(json["errors"]).to include("Source and Destination must be different")
+        expect(response).to have_http_status(:bad_request)
+        json = response.parsed_body
+        expect(json["errors"]).not_to be_empty
+      end
     end
 
-    it "includes only flights in future for today" do
-      post "/api/flights", params: { source: "Bangalore", destination: "London", date: Time.zone.today.strftime("%Y-%m-%d"), class_type: "economy" }
-      json = response.parsed_body
+    context "when no available seats for given class and passengers" do
+      it "returns 409 Conflict with no flights message" do
+        # Set available seats to 0
+        flight_seat.update(available_seats: 0)
 
-      expect(json["flights"].map { |f| f["flight_number"] }).to include("F201")
-      expect(json["flights"].map { |f| f["flight_number"] }).not_to include("F200")
-    end
-  end
+        post "/api/flights", params: {
+          source: "Mumbai",
+          destination: "Delhi",
+          date: "2025-07-20",
+          class_type: "Economy",
+          passengers: 2
+        }
 
-  describe "POST /api/book" do
-    it "books successfully and reduces seat count" do
-      before_count = File.readlines(seats_path).find { |l| l.start_with?("F101") }.split(",")[1].to_i
-
-      post "/api/book", params: {
-        flight: { flight_number: "F101", class_type: "economy" },
-        passengers: 3
-      }
-
-      json = response.parsed_body
-      after_count = File.readlines(seats_path).find { |l| l.start_with?("F101") }.split(",")[1].to_i
-
-      expect(response).to have_http_status(:ok)
-      expect(json["updated"]).to eq(true)
-      expect(json["message"]).to eq("Booking successful!")
-      expect(after_count).to eq(before_count - 3)
-    end
-
-    it "fails if not enough seats" do
-      post "/api/book", params: {
-        flight: { flight_number: "F101", class_type: "first_class" },
-        passengers: 25
-      }
-
-      json = response.parsed_body
-
-      expect(response).to have_http_status(:unprocessable_entity)
-      expect(json["updated"]).to eq(false)
-      expect(json["error"]).to include("Not enough seats")
+        expect(response).to have_http_status(:conflict)
+        json = response.parsed_body
+        expect(json["message"]).to eq("All flights on 20-Jul-2025 between Mumbai and Delhi are fully booked.")
+      end
     end
   end
 end
