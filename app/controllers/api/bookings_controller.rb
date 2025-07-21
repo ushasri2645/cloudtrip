@@ -44,13 +44,11 @@ module Api
       departure_datetime = Time.zone.parse("#{departure_date} #{departure_time}") rescue nil
       return nil unless departure_datetime
 
-      time_window = (departure_datetime - 1.minute)..(departure_datetime + 1.minute)
-
       Flight.includes(:flight_seats).find_by(
         flight_number: flight_number,
         source: source_airport,
         destination: destination_airport,
-        departure_datetime: time_window
+        departure_datetime: departure_datetime
       )
     end
 
