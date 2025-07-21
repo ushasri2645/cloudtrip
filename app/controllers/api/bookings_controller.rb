@@ -1,11 +1,11 @@
 module Api
   class BookingsController < ApplicationController
     def booking
-      flight_number, class_type, passengers = extract_booking_params
+      flight_number, class_type, passengers, source, destination, departure_date, departure_time = extract_booking_params
 
       return render_missing_flight_number if flight_number.blank?
 
-      flight = find_flight(flight_number)
+      flight = find_flight(flight_number, source, destination, departure_date, departure_time)
       return render_not_found("Requested flight not found") unless flight
 
       seat_class = find_seat_class(class_type)
@@ -21,21 +21,41 @@ module Api
 
     private
 
-     def extract_booking_params
-      flight_params = params[:flight] || {}
-      flight_number = flight_params[:flight_number]
-      class_type = flight_params[:class_type] || "economy"
-      passengers = params[:passengers].to_i
-      passengers = 1 if passengers <= 0
-      [ flight_number, class_type, passengers ]
+    def extract_booking_params
+      flight_params   = params[:flight] || {}
+      flight_number   = flight_params[:flight_number]
+      class_type      = flight_params[:class_type] || "economy"
+      passengers      = params[:passengers].to_i
+      passengers      = 1 if passengers <= 0
+      source          = flight_params[:source]
+      destination     = flight_params[:destination]
+      departure_date  = flight_params[:departure_date]
+      departure_time  = flight_params[:departure_time]
+
+      [ flight_number, class_type, passengers, source, destination, departure_date, departure_time ]
     end
 
-    def find_flight(flight_number)
-      Flight.includes(:flight_seats).find_by(flight_number: flight_number)
+    def find_flight(flight_number, source, destination, departure_date, departure_time)
+      source_airport      = Airport.find_by(city: source)
+      destination_airport = Airport.find_by(city: destination)
+
+      return nil unless source_airport && destination_airport
+
+      departure_datetime = Time.zone.parse("#{departure_date} #{departure_time}") rescue nil
+      return nil unless departure_datetime
+
+      time_window = (departure_datetime - 1.minute)..(departure_datetime + 1.minute)
+
+      Flight.includes(:flight_seats).find_by(
+        flight_number: flight_number,
+        source: source_airport,
+        destination: destination_airport,
+        departure_datetime: time_window
+      )
     end
 
     def find_seat_class(class_type)
-      SeatClass.where("LOWER(name) = ?", class_type.downcase).first
+      SeatClass.find_by("LOWER(name) = ?", class_type.downcase)
     end
 
     def find_flight_seat(flight, seat_class)
