@@ -1,8 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe FlightSeat, type: :model do
-  let(:source) { Airport.create!(city: "Source Airport", code: "SRC", city: "CityA") }
-  let(:destination) { Airport.create!(city: "Destination Airport", code: "DST", city: "CityB") }
+  let(:source) { Airport.create!(code: "SRC", city: "CityA") }
+  let(:destination) { Airport.create!(code: "DST", city: "CityB") }
 
   let(:flight) {
   Flight.create!(

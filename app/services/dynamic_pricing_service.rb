@@ -22,7 +22,7 @@ class DynamicPricingService
       if days_left <= 15 && days_left >= 3
         date_based_dynamic_price = base_price * (0.02 * (15 - days_left))
       elsif days_left < 3  && days_left >= 0
-        date_based_dynamic_price = base_price * (0.10 * (3 - days_left))
+        date_based_dynamic_price = base_price * (0.15 * (3 - days_left))
       end
     end
     final_price = seat_based_dynamic_price + date_based_dynamic_price
