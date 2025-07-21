@@ -1,4 +1,3 @@
-# spec/requests/flights_spec.rb
 require 'rails_helper'
 
 RSpec.describe "Api::FlightsController", type: :request do
@@ -42,7 +41,6 @@ RSpec.describe "Api::FlightsController", type: :request do
         flight_id: flight.id,
         seat_class_id: economy_class.id,
         multiplier: 1,
-        # price: 500.0
       )
     end
 
@@ -76,7 +74,6 @@ RSpec.describe "Api::FlightsController", type: :request do
 
     context "when no available seats for given class and passengers" do
       it "returns 409 Conflict with no flights message" do
-        # Set available seats to 0
         flight_seat.update(available_seats: 0)
 
         post "/api/flights", params: {
