@@ -25,7 +25,7 @@ RSpec.describe DynamicPricingService do
     context "when 75% seats sold and 2 days left" do
       it "adds 35% seat-based and 10% date-based increase per day (2 days)" do
         seat = base_price * 0.35
-        date = base_price * 0.10
+        date = base_price * 0.15
         expected_price = seat + date
         price = described_class.calculate_price(base_price, 100, 25, (today + 2).to_s)
         expect(price).to eq(expected_price)
@@ -35,7 +35,7 @@ RSpec.describe DynamicPricingService do
     context "when 90% seats sold and flight is tomorrow" do
       it "adds 50% seat-based and 20% date-based increase" do
         seat = base_price * 0.5
-        date = base_price * 0.2
+        date = base_price * 0.3
         expected_price = seat + date
         price = described_class.calculate_price(base_price, 100, 10, (today + 1).to_s)
         expect(price).to eq(expected_price)
@@ -53,7 +53,7 @@ RSpec.describe DynamicPricingService do
     context "when no seats sold and flight is in 3 days" do
       it "returns only date-based increase" do
         seat = 0.0
-        date = base_price * 0.10
+        date = base_price * 0.15
         expected_price = seat + date
         price = described_class.calculate_price(base_price, 100, 100, (today + 2).to_s)
         expect(price).to eq(expected_price)

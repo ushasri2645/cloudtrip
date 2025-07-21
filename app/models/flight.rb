@@ -13,6 +13,10 @@ class Flight < ApplicationRecord
   validates :price, numericality: { greater_than_or_equal_to: 0 }
   validate  :arrival_after_departure
 
+  def departure_date
+    departure_datetime&.to_date
+  end
+
   def arrival_after_departure
     return if arrival_datetime.blank? || departure_datetime.blank?
     errors.add(:arrival_datetime, "must be after departure") if arrival_datetime <= departure_datetime
