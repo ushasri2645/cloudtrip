@@ -2,8 +2,7 @@ require 'rails_helper'
 
 RSpec.describe Flight, type: :model do
   after(:each) do
-    FlightSeat.delete_all
-    ClassPricing.delete_all
+    BaseFlightSeat.delete_all
     Flight.delete_all
     Airport.delete_all
   end
@@ -15,10 +14,8 @@ RSpec.describe Flight, type: :model do
       flight_number: "6E102",
       source: airport1,
       destination: airport2,
-      departure_datetime: DateTime.now,
-      arrival_datetime: DateTime.now + 2.hours,
-      total_seats: 180,
-      price: 4500.0
+      departure_time: (1.day.from_now).strftime("%H:%M:%S"),
+      duration_minutes: 120
     )
     expect(flight).to be_valid
   end
@@ -29,23 +26,7 @@ RSpec.describe Flight, type: :model do
 
   it { should belong_to(:source).class_name('Airport') }
   it { should belong_to(:destination).class_name('Airport') }
-
-  it { should have_many(:flight_seats) }
-  it { should have_many(:class_pricings) }
-
-  it "is not valid if arrival is before departure" do
-    airport1 = Airport.create(city: "Chennai", code: "MAA")
-    airport2 = Airport.create(city: "Mumbai", code: "BOM")
-    flight = Flight.new(
-      flight_number: "AI202",
-      source: airport1,
-      destination: airport2,
-      departure_datetime: DateTime.now,
-      arrival_datetime: DateTime.now - 1.hour,
-      total_seats: 100,
-      price: 3000.0
-    )
-    expect(flight).not_to be_valid
-    expect(flight.errors[:arrival_datetime]).to include("must be after departure")
-  end
+  it { should have_many(:base_flight_seats) }
+  it { should have_many(:flight_schedules) }
+  it { should have_one(:flight_recurrence) }
 end
