@@ -2,7 +2,6 @@ require 'rails_helper'
 
 RSpec.describe FlightBookingService, type: :service do
     before(:all) do
-    # Delete everything to start fresh
 
     FlightScheduleSeat.delete_all
     FlightSchedule.delete_all
@@ -13,7 +12,6 @@ RSpec.describe FlightBookingService, type: :service do
   end
 
   after(:all) do
-    # Clean up after tests to leave DB clean
     FlightScheduleSeat.delete_all
     FlightSchedule.delete_all
      BaseFlightSeat.delete_all

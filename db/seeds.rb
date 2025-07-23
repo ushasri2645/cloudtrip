@@ -1,6 +1,5 @@
 require 'csv'
 
-# Reset all data
 FlightRecurrence.delete_all
 FlightSchedule.delete_all
 BaseFlightSeat.delete_all
@@ -8,7 +7,6 @@ SeatClass.delete_all
 Flight.delete_all
 Airport.delete_all
 
-# --- 1. Airports ---
 Rails.logger.debug "Seeding Airports..."
 airport_map = {}
 File.read("./db/data/airports.txt").each_line do |line|
@@ -17,7 +15,6 @@ File.read("./db/data/airports.txt").each_line do |line|
   airport_map[code.strip] = airport
 end
 
-# --- 2. Seat Classes ---
 Rails.logger.debug "Seeding Seat Classes..."
 seat_class_map = {}
 File.read("./db/data/seat_class.txt").each_line do |line|
@@ -25,7 +22,6 @@ File.read("./db/data/seat_class.txt").each_line do |line|
   seat_class_map[name] = SeatClass.create!(name: name)
 end
 
-# --- 3. Flights ---
 Rails.logger.debug "Seeding Flights..."
 flight_map = {}
 
@@ -58,7 +54,6 @@ File.read("./db/data/flights.txt").each_line do |line|
   end
 end
 
-# --- 4. Flight Recurrences ---
 Rails.logger.debug "Seeding Flight Recurrences..."
 File.read("./db/data/flight_recurrences.txt").each_line do |line|
   next if line.strip.empty?
@@ -77,7 +72,6 @@ File.read("./db/data/flight_recurrences.txt").each_line do |line|
   )
 end
 
-# --- 5. Flight Seats ---
 Rails.logger.debug "Seeding Flight Seats..."
 File.read("./db/data/flight_seats.txt").each_line do |line|
   next if line.strip.empty?

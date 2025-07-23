@@ -18,10 +18,6 @@ class FlightBookingService
     )
     return error("Flight not found", 404) unless flight
 
-    # flight_schedule = FlightSchedule.find_by(flight_id: flight.id, flight_date: @date)
-    # return { error: "No flight schedule found for this flight on #{@date}" } unless flight_schedule
-
-
     schedule = flight.flight_schedules.find_by(flight_date: @date)
     return error("No schedule available on this date", 404) unless schedule
 
