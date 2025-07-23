@@ -90,7 +90,7 @@ RSpec.describe "Api::FlightsController", type: :request do
 
         expect(response).to have_http_status(:conflict)
         json = response.parsed_body
-        expect(json["message"]).to eq("All seats are booked in Economy class on #{Date.today.to_s}")
+        expect(json["message"]).to eq("All seats are booked in Economy class on #{Time.zone.today}")
       end
     end
   end
