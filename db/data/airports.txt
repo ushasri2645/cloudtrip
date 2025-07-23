@@ -1,0 +1,5 @@
+Hyderabad,HYD
+Delhi,DEL
+Mumbai,BOM
+Chennai,MAA
+Bangalore,BLR
