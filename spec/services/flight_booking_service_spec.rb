@@ -2,7 +2,6 @@ require 'rails_helper'
 
 RSpec.describe FlightBookingService, type: :service do
     before(:all) do
-
     FlightScheduleSeat.delete_all
     FlightSchedule.delete_all
     BaseFlightSeat.delete_all
