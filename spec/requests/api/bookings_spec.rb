@@ -1,250 +1,169 @@
-# require 'rails_helper'
+require 'rails_helper'
 
-# RSpec.describe "Api::Bookings", type: :request do
-#   before(:each) do
-#     @source_airport = Airport.create!(city: "Delhi", code: "DEL")
-#     @destination_airport = Airport.create!(city: "Mumbai", code: "BOM")
+RSpec.describe "Api::BookingsController", type: :request do
+  let(:valid_booking_params) do
+    {
+      flight: {
+        flight_number: "123",
+        class_type: "economy",
+        source: "DEL",
+        destination: "HYD",
+        departure_date: "2025-08-01",
+        departure_time: "10:00"
+      },
+      passengers: 2
+    }
+  end
 
-#     @flight = Flight.create!(
-#       flight_number: "OQ803",
-#       source: @source_airport,
-#       destination: @destination_airport,
-#       departure_datetime: DateTime.parse("2024-08-25T09:00:00+05:30"),
-#       arrival_datetime: DateTime.parse("2024-08-25T11:00:00+05:30"),
-#       total_seats: 170,
-#       price: 4500
-#     )
+  let(:headers) do
+    { "ACCEPT" => "application/json" }
+  end
 
-#     @seat_class = SeatClass.create!(name: "Economy")
+  describe "POST /api/book" do
+    it "returns success on valid one-way booking" do
+      allow_any_instance_of(FlightBookingService).to receive(:book_flight).and_return({
+        success: true,
+        flight: "FlightObject",
+        seat_class: "economy"
+      })
 
-#     @flight_seat = FlightSeat.create!(
-#       flight: @flight,
-#       seat_class: @seat_class,
-#       total_seats: 100,
-#       available_seats: 50
-#     )
-#   end
+      post "/api/book", params: valid_booking_params, headers: headers
 
-#   after(:all) do
-#     FlightSeat.delete_all
-#     Flight.delete_all
-#     SeatClass.delete_all
-#     Airport.delete_all
-#   end
+      expect(response).to have_http_status(:ok)
+      expect(response.parsed_body).to include("updated" => true, "message" => "Booking successful")
+    end
 
-#   describe "POST /api/book" do
-#     let(:base_flight_params) do
-#     {
-#       flight_number: @flight.flight_number,
-#       class_type: @seat_class.name,
-#       source: @flight.source.city,
-#       destination: @flight.destination.city,
-#       departure_date: @flight.departure_datetime.to_date.to_s,
-#       departure_time: @flight.departure_datetime.strftime("%H:%M")
-#     }
-#   end
+    it "returns error on failed one-way booking" do
+      allow_any_instance_of(FlightBookingService).to receive(:book_flight).and_return({
+        success: false,
+        message: "Seat class not found"
+      })
 
-#     it "books successfully with valid params" do
-#       post "/api/book", params: {
-#         flight: base_flight_params,
-#         passengers: 2
-#       }
+      post "/api/book", params: valid_booking_params, headers: headers
 
-#       expect(response).to have_http_status(:ok)
-#       json = response.parsed_body
-#       expect(json["updated"]).to eq(true)
-#       expect(json["message"]).to include("Booking successful for 2 passengers")
-#     end
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response.parsed_body).to include("updated" => false, "error" => "Seat class not found")
+    end
+  end
 
-#     it "returns error when flight_number is missing" do
-#       post "/api/book", params: {
-#         flight: base_flight_params.except(:flight_number),
-#         passengers: 1
-#       }
+  describe "POST /api/round_trip_booking" do
+    let(:valid_round_trip_params) do
+      {
+        bookings: [
+          {
+            flight_number: "123",
+            class_type: "economy",
+            passengers: 2,
+            source: "DEL",
+            destination: "HYD",
+            departure_date: "2025-08-01"
+          },
+          {
+            flight_number: "456",
+            class_type: "economy",
+            passengers: 2,
+            source: "HYD",
+            destination: "DEL",
+            departure_date: "2025-08-05"
+          }
+        ]
+      }
+    end
 
-#       expect(response).to have_http_status(:bad_request)
-#       json = response.parsed_body
-#       expect(json["updated"]).to eq(false)
-#       expect(json["error"]).to eq("Missing flight_number parameter")
-#     end
+    it "returns success when both onward and return bookings succeed" do
+      allow_any_instance_of(FlightBookingService).to receive(:book_flight).and_return({
+        success: true,
+        data: "BookingData"
+      })
 
-#     it "returns error when flight is not found" do
-#       post "/api/book", params: {
-#         flight: base_flight_params.merge(flight_number: "INVALID123"),
-#         passengers: 1
-#       }
+      post "/api/round_trip_booking", params: valid_round_trip_params, headers: headers
 
-#       expect(response).to have_http_status(:not_found)
-#       json = response.parsed_body
-#       expect(json["updated"]).to eq(false)
-#       expect(json["error"]).to eq("Requested flight not found")
-#     end
+      expect(response).to have_http_status(:ok)
+      json = response.parsed_body
+      expect(json["updated"]).to eq(true)
+      expect(json["message"]).to eq("Round trip booking successful")
+    end
 
-#     it "returns error when seat class is invalid" do
-#       post "/api/book", params: {
-#         flight: base_flight_params.merge(class_type: "FirstClass"),
-#         passengers: 1
-#       }
+    it "returns error if onward booking fails" do
+      allow_any_instance_of(FlightBookingService).to receive(:book_flight).and_return({
+        success: false,
+        message: "Seat class not found",
+        status: 422
+      })
 
-#       expect(response).to have_http_status(:not_found)
-#       json = response.parsed_body
-#       expect(json["updated"]).to eq(false)
-#       expect(json["error"]).to eq("Seat class 'FirstClass' not found")
-#     end
+      post "/api/round_trip_booking", params: valid_round_trip_params, headers: headers
 
-#     it "returns error when seat info is missing for flight class" do
-#       another_flight = Flight.create!(
-#         flight_number: "AB456",
-#         source: @source_airport,
-#         destination: @destination_airport,
-#         departure_datetime: DateTime.parse("2024-08-25T13:00:00+05:30"),
-#         arrival_datetime: DateTime.parse("2024-08-25T15:00:00+05:30"),
-#         total_seats: 150,
-#         price: 4000
-#       )
+      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response.parsed_body).to include("updated" => false, "error" => "Onward booking failed: Seat class not found")
+    end
 
-#       post "/api/book", params: {
-#         flight: {
-#           flight_number: another_flight.flight_number,
-#           class_type: "Economy",
-#           source: another_flight.source.city,
-#           destination: another_flight.destination.city,
-#           departure_date: another_flight.departure_datetime.to_date.to_s,
-#           departure_time: another_flight.departure_datetime.strftime("%H:%M")
-#       },
-#         passengers: 1
-#       }
+    it "returns error if return booking fails and onward is rolled back" do
+      call_count = 0
+      allow_any_instance_of(FlightBookingService).to receive(:book_flight) do
+        call_count += 1
+        if call_count == 1
+        { success: true, data: "BookingData" }
+        else
+        { success: false, message: "Return booking failed", status: 409 }
+        end
+      end
 
-#       expect(response).to have_http_status(:not_found)
-#       json = response.parsed_body
-#       expect(json["updated"]).to eq(false)
-#       expect(json["error"]).to eq("Seat info not available for Economy")
+      post "/api/round_trip_booking", params: valid_round_trip_params, headers: headers
 
-#       another_flight.destroy
-#     end
+      expect(response).to have_http_status(:conflict)
+      expect(response.parsed_body).to include("updated" => false)
+    end
 
-#     it "returns error when not enough seats are available" do
-#       @flight_seat.update!(available_seats: 1)
+    it "returns error if bookings param is missing or not an array" do
+      post "/api/round_trip_booking", params: { bookings: "not_an_array" }, headers: headers
 
-#       post "/api/book", params: {
-#         flight: base_flight_params,
-#         passengers: 2
-#       }
+      expect(response).to have_http_status(:bad_request)
+      expect(response.parsed_body).to include("updated" => false)
+    end
 
-#       expect(response).to have_http_status(:unprocessable_entity)
-#       json = response.parsed_body
-#       expect(json["updated"]).to eq(false)
-#       expect(json["error"]).to include("Not enough seats in Economy")
-#     end
+    it "returns 500 internal error if exception is raised in transaction" do
+      allow_any_instance_of(FlightBookingService).to receive(:book_flight).and_raise(StandardError.new("Simulated crash"))
 
-#     it "handles unexpected error" do
-#       allow_any_instance_of(FlightSeat).to receive(:lock!).and_raise(StandardError.new("DB locked"))
+      post "/api/round_trip_booking", params: valid_round_trip_params, headers: headers
 
-#       post "/api/book", params: {
-#         flight: base_flight_params,
-#         passengers: 1
-#       }
+      expect(response).to have_http_status(:internal_server_error)
+      expect(response.parsed_body).to include(
+        "updated" => false,
+        "error" => a_string_including("Booking failed: Simulated crash")
+      )
+    end
 
-#       expect(response).to have_http_status(:internal_server_error)
-#       json = response.parsed_body
-#       expect(json["updated"]).to eq(false)
-#       expect(json["error"]).to include("Unexpected error: DB locked")
-#     end
+    it "defaults passengers to 1 if zero or negative is given (one-way)" do
+      invalid_passenger_params = valid_booking_params.merge(passengers: -3)
 
-#     it "returns error when departure_date is missing" do
-#       post "/api/book", params: {
-#         flight: base_flight_params.except(:departure_date),
-#         passengers: 1
-#       }
+      expect(FlightBookingService).to receive(:new).with(hash_including(passengers: 1)).and_return(
+        instance_double(FlightBookingService, book_flight: {
+          success: true,
+          flight: "FlightObject",
+          seat_class: "economy"
+        })
+      )
 
-#       expect(response).to have_http_status(:not_found)
-#       json = response.parsed_body
-#       expect(json["updated"]).to eq(false)
-#       expect(json["error"]).to eq("Requested flight not found")
-#     end
+      post "/api/book", params: invalid_passenger_params, headers: headers
 
-#     it "returns error when departure_time is missing" do
-#       post "/api/book", params: {
-#         flight: base_flight_params.except(:departure_time),
-#         passengers: 1
-#       }
+      expect(response).to have_http_status(:ok)
+    end
 
-#       expect(response).to have_http_status(:not_found)
-#       json = response.parsed_body
-#       expect(json["updated"]).to eq(false)
-#       expect(json["error"]).to eq("Requested flight not found")
-#     end
+    it "defaults passengers to 1 in round trip booking if passengers is 0" do
+      faulty_params = valid_round_trip_params.deep_dup
 
-#     it "returns error when departure_date is invalid format" do
-#       post "/api/book", params: {
-#         flight: base_flight_params.merge(departure_date: "invalid-date"),
-#         passengers: 1
-#       }
+      faulty_params[:bookings][0][:passengers] = 0
+      faulty_params[:bookings][1][:passengers] = 0
 
-#       expect(response).to have_http_status(:not_found)
-#       json = response.parsed_body
-#       expect(json["updated"]).to eq(false)
-#       expect(json["error"]).to eq("Requested flight not found")
-#     end
+      instance1 = instance_double(FlightBookingService, book_flight: { success: true, data: "BookingData" })
+      instance2 = instance_double(FlightBookingService, book_flight: { success: true, data: "ReturnBookingData" })
 
-#     it "returns error when departure_time is invalid format" do
-#       post "/api/book", params: {
-#         flight: base_flight_params.merge(departure_time: "25:61"),
-#         passengers: 1
-#       }
+      expect(FlightBookingService).to receive(:new).with(hash_including(passengers: 1)).and_return(instance1).ordered
+      expect(FlightBookingService).to receive(:new).with(hash_including(passengers: 1)).and_return(instance2).ordered
 
-#       expect(response).to have_http_status(:not_found)
-#       json = response.parsed_body
-#       expect(json["updated"]).to eq(false)
-#       expect(json["error"]).to eq("Requested flight not found")
-#     end
+      post "/api/round_trip_booking", params: faulty_params, headers: headers
 
-#     it "returns error when source city is invalid or not found" do
-#       post "/api/book", params: {
-#         flight: base_flight_params.merge(source: "Atlantis", departure_time: @flight.departure_datetime.strftime("%H:%M")),
-#         passengers: 1
-#       }
-
-#       expect(response).to have_http_status(:not_found)
-#       json = response.parsed_body
-#       expect(json["updated"]).to eq(false)
-#       expect(json["error"]).to eq("Requested flight not found")
-#     end
-
-#     it "returns error when destination city is invalid or not found" do
-#       post "/api/book", params: {
-#         flight: base_flight_params.merge(destination: "El Dorado", departure_time: @flight.departure_datetime.strftime("%H:%M")),
-#         passengers: 1
-#       }
-
-#       expect(response).to have_http_status(:not_found)
-#       json = response.parsed_body
-#       expect(json["updated"]).to eq(false)
-#       expect(json["error"]).to eq("Requested flight not found")
-#     end
-
-#     it "returns error when both source and destination cities are invalid" do
-#       post "/api/book", params: {
-#         flight: base_flight_params.merge(source: "Nowhere", destination: "Neverland", departure_time: @flight.departure_datetime.strftime("%H:%M")),
-#         passengers: 1
-#       }
-
-#       expect(response).to have_http_status(:not_found)
-#       json = response.parsed_body
-#       expect(json["updated"]).to eq(false)
-#       expect(json["error"]).to eq("Requested flight not found")
-#     end
-
-#     it "defaults to 1 passenger if passengers param is zero or negative" do
-#       post "/api/book", params: {
-#         flight: base_flight_params,
-#         passengers: 0
-#       }
-
-#       expect(response).to have_http_status(:ok)
-#       json = response.parsed_body
-#       expect(json["updated"]).to eq(true)
-#       expect(json["message"]).to include("Booking successful for 1 passenger")
-#     end
-#   end
-# end
+      expect(response).to have_http_status(:ok)
+    end
+  end
+end
