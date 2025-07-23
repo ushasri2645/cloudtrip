@@ -11,29 +11,32 @@ RSpec.describe FlightSearchService do
       flight_number: "AI123",
       source: @source_airport,
       destination: @destination_airport,
-      departure_datetime: 2.days.from_now.change(hour: 10),
-      arrival_datetime: 2.days.from_now.change(hour: 12),
-      total_seats: 100,
-      price: 3000
+      departure_time: 2.days.from_now.change(hour: 10),
+      duration_minutes: 120,
+      is_recurring: false,
     )
 
-    @flight_seat = FlightSeat.create!(
-      flight: @flight,
-      seat_class: @economy_class,
-      total_seats: 100,
-      available_seats: 20
+    @base_flight_seat=  BaseFlightSeat.create!(
+        flight: @flight,
+        seat_class: @economy_class,
+        total_seats: 100,
+        price: 3500
+      )
+
+    @flight_schedule =  FlightSchedule.create!(
+        flight: @flight,
+        flight_date: Time.zone.today
     )
 
-    @class_pricing = ClassPricing.create!(
-      flight: @flight,
-      seat_class: @economy_class,
-      multiplier: 1
+    @flight_schedule_seat = FlightScheduleSeat.create!(
+        flight_schedule: @flight_schedule,
+        seat_class: @economy_class,
+        available_seats: 80
     )
   end
 
   after(:all) do
-    ClassPricing.destroy_all
-    FlightSeat.destroy_all
+    BaseFlightSeat.destroy_all
     Flight.destroy_all
     Airport.destroy_all
     SeatClass.destroy_all
@@ -42,7 +45,7 @@ RSpec.describe FlightSearchService do
   describe "#search_flights" do
     context "when all inputs are valid" do
       it "returns available flights" do
-        service = FlightSearchService.new("Hyderabad", "Delhi", 2.days.from_now, "Economy", 2)
+        service = FlightSearchService.new("Hyderabad", "Delhi", Time.zone.today, "Economy", 2)
         result = service.search_flights
         expect(result[:status]).to eq(200)
         expect(result[:flights]).not_to be_empty
@@ -67,18 +70,18 @@ RSpec.describe FlightSearchService do
         result = service.search_flights
 
         expect(result[:status]).to eq(400)
-        expect(result[:message]).to eq("We are not serving this source and destination.")
+        expect(result[:message]).to eq("Source or destination not found.")
       end
     end
 
     context "when there are no flights between source and destination" do
       it "returns 404 error" do
         other_airport = Airport.create!(city: "Mumbai", code: "BOM")
-        service = FlightSearchService.new("Mumbai", "Delhi", 2.days.from_now, "Economy", 2)
+        service = FlightSearchService.new("Mumbai", "Delhi", Time.zone.today, "Economy", 2)
         result = service.search_flights
 
         expect(result[:status]).to eq(404)
-        expect(result[:message]).to eq("There are no flights operated from this source to destination.")
+        expect(result[:message]).to eq("We are not operating on this route. Sorry for the inconvenience")
 
         other_airport.destroy
       end
@@ -90,17 +93,35 @@ RSpec.describe FlightSearchService do
         result = service.search_flights
 
         expect(result[:status]).to eq(200)
-        expect(result[:message]).to include("No flights available on")
+        expect(result[:flights]).to eq([])
+        # expect(result[:message]).to include("No flights available on")
       end
     end
 
     context "when requesting more passengers than available seats" do
       it "returns 409 error" do
-        service = FlightSearchService.new("Hyderabad", "Delhi", 2.days.from_now, "Economy", 25)
+        @flight_schedule_seat.update!(available_seats: 0)
+
+        service = FlightSearchService.new("Hyderabad", "Delhi", Time.zone.today, "Economy", 25)
         result = service.search_flights
 
         expect(result[:status]).to eq(409)
-        expect(result[:message]).to include("fully booked")
+        expect(result[:message]).to include("All seats are booked")
+      end
+    end
+
+
+    context "when flight schedule seat does not exist" do
+      it "creates a new flight schedule seat with available seats from base" do
+        FlightScheduleSeat.destroy_all
+
+        service = FlightSearchService.new("Hyderabad", "Delhi", Time.zone.today, "Economy", 1)
+        result = service.search_flights
+
+        seat = FlightScheduleSeat.find_by(flight_schedule: @flight_schedule, seat_class: @economy_class)
+        expect(result[:status]).to eq(200)
+        expect(seat).not_to be_nil
+        expect(seat.available_seats).to eq(100)
       end
     end
   end
