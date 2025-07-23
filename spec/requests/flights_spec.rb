@@ -3,8 +3,7 @@ require 'rails_helper'
 RSpec.describe "Api::FlightsController", type: :request do
   describe "POst /api/flights/search" do
     before(:each) do
-      ClassPricing.delete_all
-      FlightSeat.delete_all
+      BaseFlightSeat.delete_all
       Flight.delete_all
       SeatClass.delete_all
       Airport.delete_all
@@ -20,27 +19,31 @@ RSpec.describe "Api::FlightsController", type: :request do
         flight_number: "F101",
         source: mumbai,
         destination: delhi,
-        departure_datetime: "2025-07-20 10:00:00",
-        arrival_datetime: "2025-07-20 12:00:00",
-        price: 500.0,
-        total_seats: 100
+        departure_time: (Time.zone.now).strftime("%H:%M:%S"),
+        duration_minutes: 120
       )
     end
 
-    let!(:flight_seat) do
-      FlightSeat.create!(
+    let!(:base_flight_seat) do
+      BaseFlightSeat.create!(
         flight: flight,
         seat_class: economy_class,
         total_seats: 100,
-        available_seats: 50
+        price: 3500
+      )
+    end
+    let!(:flight_schedule) do
+      FlightSchedule.create!(
+        flight: flight,
+        flight_date: Time.zone.today
       )
     end
 
-    let!(:pricing) do
-      ClassPricing.create!(
-        flight_id: flight.id,
-        seat_class_id: economy_class.id,
-        multiplier: 1,
+    let!(:flight_schedule_seat) do
+      FlightScheduleSeat.create!(
+        flight_schedule: flight_schedule,
+        seat_class: economy_class,
+        available_seats: 80
       )
     end
 
@@ -49,7 +52,7 @@ RSpec.describe "Api::FlightsController", type: :request do
         post "/api/flights", params: {
           source: "Mumbai",
           destination: "Delhi",
-          date: "2025-07-20",
+          date: Time.zone.today.to_s,
           class_type: "Economy",
           passengers: 2
         }
@@ -72,21 +75,22 @@ RSpec.describe "Api::FlightsController", type: :request do
       end
     end
 
+
     context "when no available seats for given class and passengers" do
       it "returns 409 Conflict with no flights message" do
-        flight_seat.update(available_seats: 0)
+        flight_schedule_seat.update!(available_seats: 0)
 
         post "/api/flights", params: {
           source: "Mumbai",
           destination: "Delhi",
-          date: "2025-07-20",
+          date: Time.zone.today.to_s,
           class_type: "Economy",
           passengers: 2
         }
 
         expect(response).to have_http_status(:conflict)
         json = response.parsed_body
-        expect(json["message"]).to eq("All flights on 20-Jul-2025 between Mumbai and Delhi are fully booked.")
+        expect(json["message"]).to eq("All seats are booked in Economy class on #{Time.zone.today}")
       end
     end
   end

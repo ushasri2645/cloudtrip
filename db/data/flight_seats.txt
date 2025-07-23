@@ -1,0 +1,4 @@
+AI101:Economy:3500:180:Business:7000:50
+AI102:Economy:3200:200:Business:6800:60:First:12000:10
+AI103:Economy:3000:190:Business:6500:55
+AI104:Economy:2000:100
