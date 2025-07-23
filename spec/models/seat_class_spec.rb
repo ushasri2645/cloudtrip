@@ -9,6 +9,5 @@ RSpec.describe SeatClass, type: :model do
     expect(SeatClass.new).not_to be_valid
   end
 
-  it { should have_many(:class_pricings) }
-  it { should have_many(:flight_seats) }
+  it { should have_many(:base_flight_seats) }
 end
