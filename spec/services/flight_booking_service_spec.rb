@@ -47,7 +47,7 @@ RSpec.describe FlightBookingService, type: :service do
   let!(:flight_schedule) do
     FlightSchedule.create!(
       flight: flight,
-      flight_date: Date.today
+      flight_date: Time.zone.today
     )
   end
 
@@ -64,7 +64,7 @@ RSpec.describe FlightBookingService, type: :service do
       flight_number: "AI101",
       source: "Delhi",
       destination: "Mumbai",
-      date: Date.today.to_s,
+      date: Time.zone.today.to_s,
       class_type: "economy",
       passengers: 2
     }
