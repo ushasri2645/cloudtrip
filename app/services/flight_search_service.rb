@@ -12,56 +12,26 @@ class FlightSearchService
     return error("Invalid class type", 400) unless seat_class
     return error("Source or destination not found.", 400) unless source_airport && destination_airport
 
-    flights = fetch_flights(source_airport,  destination_airport, @date)
-
-    if flights.empty?
-      if route_exists?
-        return error("No available flights on this date", 200)
-      else
-        return error("We are not operating on this route. Sorry for the inconvenience", 404)
-      end
-    end
+    flights = fetch_flights(source_airport, destination_airport, @date)
+    return error("No available flights on this date", 200) if flights.empty? && route_exists?
+    return error("We are not operating on this route. Sorry for the inconvenience", 404) if flights.empty?
 
     matching_flights = []
-    any_flight_with_seats=false
 
     flights.each do |flight|
       schedule = find_or_create_schedule(flight, @date)
       seat = find_or_create_schedule_seat(schedule, seat_class)
+      next unless seat.available_seats >= @passengers
 
-      if seat.available_seats >= @passengers
-        base_seat = BaseFlightSeat.find_by(flight: flight, seat_class: seat_class)
-        base_price = base_seat.price
-        dynamic_price = DynamicPricingService.calculate_price(base_price, base_seat.total_seats, seat.available_seats, @date)
-        price_per_person = base_price + dynamic_price
-        total_fare = price_per_person * @passengers
-        extra_price = total_fare - (base_price * @passengers)
-
-        arrival_datetime = calculate_arrival_datetime(@date, flight.departure_time, flight.duration_minutes)
-        departure_datetime = build_departure_datetime_string(@date, flight.departure_time)
-        matching_flights << {
-          flight_number:      flight.flight_number,
-          departure_date:     departure_datetime,
-          arrival_date:       arrival_datetime,
-          source:             flight.source.city,
-          destination:        flight.destination.city,
-          class_type:         @class_type,
-          base_price:         base_price.round(2),
-          price_per_seat:     dynamic_price.round(2),
-          price_per_person:   price_per_person.round(2),
-          total_fare:         total_fare.round(2),
-          extra_price:        extra_price.round(2),
-          available_seats:    seat.available_seats,
-          is_recurring: flight.is_recurring
-        }
-      end
+      pricing = calculate_flight_pricing(flight, seat)
+      flight_data = build_flight_data(flight, seat, pricing)
+      matching_flights << flight_data
     end
+
     if matching_flights.any?
       success(matching_flights, "Flights found")
-    elsif any_flight_with_seats == false
-      error("All seats are booked in #{@class_type.titleize} class on #{@date}", 409)
     else
-      error("No flights match your search", 404)
+      error("All seats are booked in #{@class_type.titleize} class on #{@date}", 409)
     end
   end
 
@@ -139,6 +109,55 @@ class FlightSearchService
   def route_exists?
     Flight.exists?(source: source_airport, destination: destination_airport)
   end
+
+  def calculate_flight_pricing(flight, seat)
+    base_seat = BaseFlightSeat.find_by(flight: flight, seat_class: seat_class)
+    base_price = base_seat.price
+    dynamic_price = DynamicPricingService.calculate_price(base_price, base_seat.total_seats, seat.available_seats, @date)
+    price_per_person = base_price + dynamic_price
+    total_fare = price_per_person * @passengers
+    extra_price = total_fare - (base_price * @passengers)
+
+    {
+      base_price: base_price,
+      dynamic_price: dynamic_price,
+      price_per_person: price_per_person,
+      total_fare: total_fare,
+      extra_price: extra_price
+    }
+  end
+
+  def build_flight_data(flight, seat, pricing)
+    arrival_datetime   = calculate_arrival_datetime(@date, flight.departure_time, flight.duration_minutes)
+    departure_datetime = build_departure_datetime_string(@date, flight.departure_time)
+    recurrence = flight.flight_recurrence
+  recurrence_days = recurrence ? readable_days(recurrence.days_of_week) : "One-time flight"
+
+    {
+      flight_number:      flight.flight_number,
+      departure_date:     departure_datetime,
+      arrival_date:       arrival_datetime,
+      source:             flight.source.city,
+      destination:        flight.destination.city,
+      class_type:         @class_type,
+      base_price:         pricing[:base_price].round(2),
+      price_per_seat:     pricing[:dynamic_price].round(2),
+      price_per_person:   pricing[:price_per_person].round(2),
+      total_fare:         pricing[:total_fare].round(2),
+      extra_price:        pricing[:extra_price].round(2),
+      available_seats:    seat.available_seats,
+      is_recurring:       flight.is_recurring,
+      recurrence_days:    recurrence_days
+    }
+  end
+  def readable_days(days)
+  return "Everyday" if days.sort == (0..6).to_a
+
+  day_names = Date::DAYNAMES
+  days.map { |d| day_names[d][0] }.join(" ")
+end
+
+
 
   def error(message, status)
     { flights: [], message: message, status: status }
