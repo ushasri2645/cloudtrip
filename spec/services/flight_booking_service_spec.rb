@@ -20,7 +20,7 @@ RSpec.describe FlightBookingService do
   let!(:schedule) do
     FlightSchedule.create!(
       flight: flight,
-      flight_date: Date.today
+      flight_date: Time.zone.today
     )
   end
 
