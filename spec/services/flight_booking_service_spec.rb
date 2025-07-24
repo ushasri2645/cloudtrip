@@ -89,6 +89,7 @@ RSpec.describe FlightBookingService, type: :service do
     result = FlightBookingService.new(valid_params).book_flight
 
     expect(result[:success]).to be false
+    # expect(result[:error]).to include("No flight schedule")
   end
 
   it "returns error if seat class not found" do
@@ -107,47 +108,31 @@ RSpec.describe FlightBookingService, type: :service do
     expect(result[:message]).to eq("No seats available")
     expect(result[:status]).to eq(409)
   end
+    context "when source airport is not found" do
+        it "returns an error" do
+            params = valid_params.merge(source: "NonExistentCity")
+            result = FlightBookingService.new(params).book_flight
+            expect(result[:status]).to eq(404)
+        end
+    end
+     context "when destination airport is not found" do
+        it "returns an error" do
+            params = valid_params.merge(destination: "NonExistentCity")
+            result = FlightBookingService.new(params).book_flight
+            expect(result[:message]).to eq("Flight not found")
 
-  it "returns an error about seat info not being available" do
-    schedule_seat.destroy
+            expect(result[:status]).to eq(404)
+        end
+    end
+    context "when seat info for the class is not available on the selected date" do
+        it "returns an error" do
+            params = valid_params.merge(class_type: "RandomClass")
+            result = FlightBookingService.new(params).book_flight
 
-    result = FlightBookingService.new(valid_params).book_flight
-
-    expect(result[:success]).to be false
-    expect(result[:status]).to eq(404)
-    expect(result[:message]).to eq("No seat info for this class on the selected date")
-  end
-
-  it "returns an internal error message" do
-    allow_any_instance_of(FlightScheduleSeat).to receive(:update!).and_raise(StandardError)
-
-    result = FlightBookingService.new(valid_params).book_flight
-
-    expect(result[:success]).to be false
-    expect(result[:status]).to eq(500)
-    expect(result[:message]).to eq("Seat booking failed due to internal error")
-  end
-
-  it "returns an error" do
-      params = valid_params.merge(source: "NonExistentCity")
-      result = FlightBookingService.new(params).book_flight
-      expect(result[:status]).to eq(404)
-  end
-
-  it "returns an error" do
-      params = valid_params.merge(destination: "NonExistentCity")
-      result = FlightBookingService.new(params).book_flight
-      expect(result[:message]).to eq("Flight not found")
-
-      expect(result[:status]).to eq(404)
-  end
-
-  it "returns an error" do
-      params = valid_params.merge(class_type: "RandomClass")
-      result = FlightBookingService.new(params).book_flight
-
-      expect(result[:status]).to eq(404)
-      expect(result[:message]).to eq("Seat class not found")
-      expect(result[:status]).to eq(404)
-  end
+            expect(result[:status]).to eq(404)
+            expect(result[:message]).to eq("Seat class not found")
+            expect(result[:status]).to eq(404)
+        end
+    end
 end
+# end

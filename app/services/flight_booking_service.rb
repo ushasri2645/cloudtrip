@@ -34,12 +34,8 @@ class FlightBookingService
       return error("No seats available", 409)
     end
 
-    begin
-      seat.with_lock do
-        seat.update!(available_seats: seat.available_seats - @passengers)
-      end
-    rescue => e
-      return error("Seat booking failed due to internal error", 500)
+    seat.with_lock do
+      seat.update!(available_seats: seat.available_seats - @passengers)
     end
 
     success("Booking successful", seat)
