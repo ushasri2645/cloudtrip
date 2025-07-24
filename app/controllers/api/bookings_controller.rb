@@ -14,7 +14,7 @@ module Api
       validator = FlightBookingValidator.new(params)
 
       unless validator.valid?
-        return render json: { updated: false, errors: validator.errors }, status: :bad_request
+        return render json: { updated: false, error: validator.errors.last[:message] }, status: validator.errors.last[:status]
       end
 
       booking_service = FlightBookingService.new(
@@ -27,7 +27,7 @@ module Api
       if bookingResult[:success]
         render json: { updated: true, message: bookingResult[:message], data: bookingResult[:data] }, status: :ok
       else
-        render json: { updated: false, error: bookingResult[:message] }, status: bookingResult[:status] || :unprocessable_entity
+        render json: { updated: false, error: bookingResult[:message] }, status: :unprocessable_entity
       end
     end
 
