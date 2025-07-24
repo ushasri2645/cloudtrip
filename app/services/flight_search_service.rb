@@ -16,7 +16,6 @@ class FlightSearchService
 
     if flights.empty?
       if route_exists?
-        Rails.logger.debug "no route"
         return error("No available flights on this date", 200)
       else
         return error("We are not operating on this route. Sorry for the inconvenience", 404)
@@ -89,14 +88,11 @@ class FlightSearchService
 
     flights.each do |flight|
       recurrence = flight.flight_recurrence
-      if recurrence.present?
-        if recurrence.days_of_week.include?(day_of_week)
-          if date_obj >= recurrence.start_date
-            if recurrence.end_date.nil? || date_obj <= recurrence.end_date
-              filtered_flights << flight
-            end
-          end
-        end
+      if recurrence.present? &&
+        recurrence.days_of_week.include?(day_of_week) &&
+        date_obj >= recurrence.start_date &&
+        (recurrence.end_date.nil? || date_obj <= recurrence.end_date)
+        filtered_flights << flight
       else
         schedule = flight.flight_schedules.find_by(flight_date: date_obj)
         if schedule.present?
