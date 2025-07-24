@@ -44,7 +44,6 @@ class FlightBookingValidator
   end
 
   def fetch_schedule
-    puts "date #{@date}"
     schedule = flight.flight_schedules.find_by(flight_date: @date.to_s)
     unless schedule
       @errors << { message: "No schedule available on this date", status: 404 }
