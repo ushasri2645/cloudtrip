@@ -28,7 +28,6 @@ class FlightBookingValidator
     destination_airport = Airport.find_by("LOWER(city) = ?", @destination.downcase)
 
     unless source_airport && destination_airport
-        puts 'not fpunf'
         @errors << { message: "Source or destination airport not found", status: 404 }
         return nil
     end
