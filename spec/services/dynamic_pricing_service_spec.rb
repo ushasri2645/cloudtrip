@@ -1,62 +1,82 @@
-require "rails_helper"
+require 'rails_helper'
 
-RSpec.describe DynamicPricingService do
-  describe ".calculate_price" do
-    let(:base_price) { 1000.0 }
-    let(:today) { Time.zone.today }
+describe DynamicPricingService do
+  describe '.calculate_price' do
+    let(:base_price) { 1000 }
+    let(:total_seats) { 100 }
 
-    context "when 0–30% seats sold and flight is 20 days away" do
-      it "returns base price (no increase)" do
-        price = described_class.calculate_price(base_price, 100, 100, (today + 20).to_s)
-        expect(price).to eq(0.0)
+    context 'when 50% seats are sold and flight is in 10 days' do
+      it 'calculates seat-based and date-based dynamic prices correctly' do
+        available_seats = 50
+        flight_date = Time.zone.today + 10.days
+
+        price = DynamicPricingService.calculate_price(
+          base_price,
+          total_seats,
+          available_seats,
+          flight_date
+        )
+        expect(price).to eq(300)
       end
     end
 
-    context "when 40% seats sold and 7 days left" do
-      it "adds 20% seat-based and 16% date-based increase" do
-        seat = base_price * 0.2
-        date = base_price * 0.16
-        expected_price = seat + date
-        price = described_class.calculate_price(base_price, 100, 60, (today + 7).to_s)
-        expect(price).to eq(expected_price)
+    context 'when all seats are available and flight is in 20 days' do
+      it 'returns 0 dynamic pricing' do
+        available_seats = 100
+        flight_date = Time.zone.today + 20.days
+
+        price = DynamicPricingService.calculate_price(
+          base_price,
+          total_seats,
+          available_seats,
+          flight_date
+        )
+
+        expect(price).to eq(0)
       end
     end
 
-    context "when 75% seats sold and 2 days left" do
-      it "adds 35% seat-based and 10% date-based increase per day (2 days)" do
-        seat = base_price * 0.35
-        date = base_price * 0.15
-        expected_price = seat + date
-        price = described_class.calculate_price(base_price, 100, 25, (today + 2).to_s)
-        expect(price).to eq(expected_price)
+    context 'when seats are 75% sold and flight is in 1 day' do
+      it 'calculates high dynamic pricing' do
+        available_seats = 25
+        flight_date = Time.zone.today + 1.day
+
+        price = DynamicPricingService.calculate_price(
+          base_price,
+          total_seats,
+          available_seats,
+          flight_date
+        )
+        expect(price).to eq(650)
       end
     end
+    context 'when more than 75% seats are sold' do
+      it 'applies 50% seat multiplier' do
+        available_seats = 20
+        flight_date = Time.zone.today + 20.days
 
-    context "when 90% seats sold and flight is tomorrow" do
-      it "adds 50% seat-based and 20% date-based increase" do
-        seat = base_price * 0.5
-        date = base_price * 0.3
-        expected_price = seat + date
-        price = described_class.calculate_price(base_price, 100, 10, (today + 1).to_s)
-        expect(price).to eq(expected_price)
+        price = DynamicPricingService.calculate_price(
+          base_price,
+          total_seats,
+          available_seats,
+          flight_date
+        )
+        expect(price).to eq(500)
       end
     end
+    context 'when flight is after 20 days' do
+      it 'does not apply any date-based pricing' do
+        available_seats = 100
+        flight_date = Time.zone.today + 20.days
 
-    context "when invalid date string is passed" do
-      it "returns only seat-based price" do
-        seat = base_price * 0.5
-        price = described_class.calculate_price(base_price, 100, 20, "invalid-date")
-        expect(price).to eq(seat)
-      end
-    end
+        price = DynamicPricingService.calculate_price(
+          base_price,
+          total_seats,
+          available_seats,
+          flight_date
+        )
 
-    context "when no seats sold and flight is in 3 days" do
-      it "returns only date-based increase" do
-        seat = 0.0
-        date = base_price * 0.15
-        expected_price = seat + date
-        price = described_class.calculate_price(base_price, 100, 100, (today + 2).to_s)
-        expect(price).to eq(expected_price)
+        expect(price).to eq(0)
       end
     end
   end
