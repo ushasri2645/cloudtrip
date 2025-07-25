@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_07_22_114900) do
+ActiveRecord::Schema[8.0].define(version: 2025_07_24_104315) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -19,6 +19,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_22_114900) do
     t.string "code"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["code"], name: "index_airports_on_code", unique: true
   end
 
   create_table "base_flight_seats", force: :cascade do |t|
@@ -28,6 +29,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_22_114900) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.decimal "price"
+    t.index ["flight_id", "seat_class_id"], name: "index_base_flight_seats_on_flight_id_and_seat_class_id", unique: true
     t.index ["flight_id"], name: "index_base_flight_seats_on_flight_id"
     t.index ["seat_class_id"], name: "index_base_flight_seats_on_seat_class_id"
   end
@@ -48,6 +50,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_22_114900) do
     t.integer "available_seats", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["flight_schedule_id", "seat_class_id"], name: "index_schedule_seats_on_schedule_and_class", unique: true
     t.index ["flight_schedule_id"], name: "index_flight_schedule_seats_on_flight_schedule_id"
     t.index ["seat_class_id"], name: "index_flight_schedule_seats_on_seat_class_id"
   end
@@ -57,6 +60,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_22_114900) do
     t.date "flight_date", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.index ["flight_id", "flight_date"], name: "index_flight_schedules_on_flight_id_and_flight_date", unique: true
     t.index ["flight_id"], name: "index_flight_schedules_on_flight_id"
   end
 
@@ -70,6 +74,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_07_22_114900) do
     t.boolean "is_recurring", default: true, null: false
     t.integer "duration_minutes", default: 0, null: false
     t.index ["destination_id"], name: "index_flights_on_destination_id"
+    t.index ["flight_number", "source_id", "destination_id"], name: "index_flights_on_number_and_route", unique: true
     t.index ["source_id"], name: "index_flights_on_source_id"
   end
 

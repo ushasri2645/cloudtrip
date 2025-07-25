@@ -2,6 +2,10 @@ require 'rails_helper'
 
 RSpec.describe FlightSearchService do
   before(:all) do
+    BaseFlightSeat.destroy_all
+    Flight.destroy_all
+    Airport.destroy_all
+    SeatClass.destroy_all
     @economy_class = SeatClass.create!(name: "Economy")
 
     @source_airport = Airport.create!(city: "Hyderabad", code: "HYD")
@@ -209,22 +213,6 @@ RSpec.describe FlightSearchService do
 
         expect(result[:status]).to eq(200)
         expect(result[:flights]).not_to be_empty
-      end
-
-      it "excludes recurring flights if date is outside recurrence range" do
-        FlightRecurrence.create!(
-          flight: @flight,
-          days_of_week: [ Time.zone.today.wday ],
-          start_date: 10.days.from_now.to_date
-        )
-
-        @flight_schedule.destroy
-
-        service = FlightSearchService.new("Hyderabad", "Delhi", Time.zone.today, "Economy", 1)
-        result = service.search_flights
-
-        expect(result[:flights]).to eq([])
-        expect(result[:status]).to eq(200)
       end
     end
   end

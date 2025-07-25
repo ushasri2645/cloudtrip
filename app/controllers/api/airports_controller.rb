@@ -1,7 +1,7 @@
 module Api
   class AirportsController < ApplicationController
     def cities
-      cities = Airport.select(:city).distinct.order(:city).pluck(:city)
+      cities = AirportService.getCities
       render json: { cities: cities }, status: :ok
     end
   end
