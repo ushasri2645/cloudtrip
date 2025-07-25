@@ -52,7 +52,7 @@ describe DynamicPricingService do
     end
     context 'when more than 75% seats are sold' do
       it 'applies 50% seat multiplier' do
-        available_seats = 20 
+        available_seats = 20
         flight_date = Time.zone.today + 20.days
 
         price = DynamicPricingService.calculate_price(
@@ -66,7 +66,7 @@ describe DynamicPricingService do
     end
     context 'when flight is after 20 days' do
       it 'does not apply any date-based pricing' do
-        available_seats = 100 
+        available_seats = 100
         flight_date = Time.zone.today + 20.days
 
         price = DynamicPricingService.calculate_price(
@@ -76,18 +76,8 @@ describe DynamicPricingService do
           flight_date
         )
 
-        expect(price).to eq(0) 
+        expect(price).to eq(0)
       end
     end
-
   end
 end
-
-
-
-
-
-
-
-
-

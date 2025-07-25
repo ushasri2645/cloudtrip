@@ -48,9 +48,3 @@ class DateBasedPricing
     end
   end
 end
-
-
-
-
-
-
