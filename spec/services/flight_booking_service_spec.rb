@@ -55,6 +55,20 @@ RSpec.describe FlightBookingService do
         expect(seat.reload.available_seats).to eq(5)
       end
     end
+
+    context "when update! raises an exception" do
+      it "returns a failure response with error message and status 500" do
+        allow(seat).to receive(:update!).and_raise(ActiveRecord::RecordInvalid.new(seat))
+
+        service = described_class.new(schedule: schedule, seat: seat, passengers: 2)
+        result = service.book_flight
+
+        expect(result[:success]).to be false
+        expect(result[:message]).to match(/Booking failed:/)
+        expect(result[:status]).to eq(500)
+        expect(seat.reload.available_seats).to eq(5)
+      end
+    end
   end
 
   after(:each) do
