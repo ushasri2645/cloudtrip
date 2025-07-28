@@ -24,22 +24,25 @@ class FlightBookingValidator
   private
 
   def fetch_flight
-     source_airport = Airport.find_by("LOWER(city) = ?", @source.downcase)
+    source_airport = Airport.find_by("LOWER(city) = ?", @source.downcase)
     destination_airport = Airport.find_by("LOWER(city) = ?", @destination.downcase)
 
     unless source_airport && destination_airport
         @errors << { message: "Source or destination airport not found", status: 404 }
         return nil
     end
+
     flight = Flight.find_by(
       flight_number: @flight_number,
       source: source_airport,
       destination: destination_airport
     )
+
     unless flight
       @errors << { message: "Flight not found", status: 404 }
       return nil
     end
+
     flight
   end
 

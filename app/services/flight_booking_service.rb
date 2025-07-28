@@ -13,8 +13,9 @@ class FlightBookingService
 
       @seat.update!(available_seats: @seat.available_seats - @passengers)
     end
+
     success("Booking successful", @seat)
-    rescue ActiveRecord::ActiveRecordError => e
+  rescue ActiveRecord::ActiveRecordError => e
     error("Booking failed: #{e.message}", 500)
   end
 

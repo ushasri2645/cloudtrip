@@ -5,5 +5,6 @@ Rails.application.routes.draw do
     get "cities", to: "airports#cities"
     post "flights", to: "flights#search"
     post "book", to: "bookings#booking"
+    post "round_trip_booking", to: "bookings#round_trip_booking"
   end
 end
