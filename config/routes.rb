@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
   get "up" => "rails/health#show", as: :rails_health_check
-  root "flights#index"
+
   namespace :api do
     get "cities", to: "airports#cities"
     post "flights", to: "flights#search"
