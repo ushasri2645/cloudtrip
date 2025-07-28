@@ -171,12 +171,12 @@ RSpec.describe "Api::BookingsController", type: :request do
       }
     }
 
-    let(:valid_params) { { bookings: [onward_booking, return_booking] } }
+    let(:valid_params) { { bookings: [ onward_booking, return_booking ] } }
 
     it "books round trip successfully with valid data" do
       post "/api/round_trip_booking", params: valid_params
       expect(response).to have_http_status(:ok)
-      json = JSON.parse(response.body)
+      json = response.parsed_body
       expect(json["updated"]).to eq(true)
       expect(json["message"]).to eq("Round trip booking successful🎉")
       expect(json["onward"]).to be_present
@@ -184,9 +184,9 @@ RSpec.describe "Api::BookingsController", type: :request do
     end
 
     it "fails when bookings param is not an array of two" do
-      post "/api/round_trip_booking", params: { bookings: [onward_booking] }
+      post "/api/round_trip_booking", params: { bookings: [ onward_booking ] }
       expect(response).to have_http_status(:bad_request)
-      json = JSON.parse(response.body)
+      json = response.parsed_body
       expect(json["updated"]).to eq(false)
       expect(json["error"]).to eq("Both onward and return bookings must be provided")
     end
@@ -194,8 +194,8 @@ RSpec.describe "Api::BookingsController", type: :request do
     it "fails when onward schedule is missing" do
       schedule.destroy
       post "/api/round_trip_booking", params: valid_params
-      expect(response).to have_http_status(:not_found) 
-      json = JSON.parse(response.body)  
+      expect(response).to have_http_status(:not_found)
+      json = response.parsed_body
       expect(json["updated"]).to eq(false)
       expect(json["error"]).to start_with("Onward booking failed:")
     end
@@ -203,8 +203,8 @@ RSpec.describe "Api::BookingsController", type: :request do
     it "fails and rolls back when return booking fails" do
       return_seat.update!(available_seats: 0)
       post "/api/round_trip_booking", params: valid_params
-      expect(response).to have_http_status(:conflict) 
-      json = JSON.parse(response.body)
+      expect(response).to have_http_status(:conflict)
+      json = response.parsed_body
       expect(json["updated"]).to eq(false)
       expect(json["error"]).to start_with("Return booking failed:")
     end
@@ -213,7 +213,7 @@ RSpec.describe "Api::BookingsController", type: :request do
       allow_any_instance_of(FlightBookingService).to receive(:book_flight).and_raise(StandardError.new("unexpected crash"))
       post "/api/round_trip_booking", params: valid_params
       expect(response).to have_http_status(:internal_server_error)
-      json = JSON.parse(response.body)
+      json = response.parsed_body
       expect(json["updated"]).to eq(false)
       expect(json["error"]).to eq("Booking failed: unexpected crash")
     end
@@ -252,7 +252,7 @@ RSpec.describe "Api::BookingsController", type: :request do
       zero_passenger_booking = onward_booking.deep_dup
       zero_passenger_booking[:passengers] = 0
 
-      post "/api/round_trip_booking", params: { bookings: [zero_passenger_booking, return_booking] }
+      post "/api/round_trip_booking", params: { bookings: [ zero_passenger_booking, return_booking ] }
       expect(response).to have_http_status(:ok)
       json = response.parsed_body
       expect(json["updated"]).to eq(true)
