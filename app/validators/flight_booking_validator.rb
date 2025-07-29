@@ -1,5 +1,5 @@
 class FlightBookingValidator
-  attr_reader :errors, :flight, :schedule, :seat_class, :seat
+  attr_reader :errors, :flight, :schedule, :seat_class, :seat, :passengers
 
   def initialize(params)
     @flight_number = params[:flight_number]
