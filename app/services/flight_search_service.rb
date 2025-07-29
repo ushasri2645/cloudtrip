@@ -23,7 +23,7 @@ class FlightSearchService
 
     results = matching_flight_data(flights_with_class)
 
-    return results.any? ? success(results, "Flights found") :
+    results.any? ? success(results, "Flights found") :
                           error("All seats are booked in #{class_type_title} class on #{@date}", 409)
   end
 
@@ -140,7 +140,7 @@ class FlightSearchService
   def readable_days(days)
     return "Everyday" if days.sort == (0..6).to_a
 
-    Date::DAYNAMES.values_at(*days).map { |day| day[0] }.join(" ")
+    Date::DAYNAMES.values_at(*days).pluck(0).join(" ")
   end
 
   def route_exists?
