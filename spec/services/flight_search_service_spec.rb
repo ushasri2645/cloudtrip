@@ -202,10 +202,10 @@ RSpec.describe FlightSearchService do
         expect(result[:flights]).not_to be_empty
       end
     end
-    
+
     context "when flights exist but none support the requested class" do
       it "returns 404 with a class-not-available message" do
-        SeatClass.create!(name: "Business") 
+        SeatClass.create!(name: "Business")
 
         service = FlightSearchService.new("Hyderabad", "Delhi", Time.zone.today, "Business", 1)
         result = service.search_flights
@@ -215,7 +215,7 @@ RSpec.describe FlightSearchService do
         expect(result[:flights]).to be_empty
       end
     end
-    
+
     context "when base seat is missing for a valid flight" do
       it "does not include that flight in the results" do
         business_class = SeatClass.create!(name: "Business")
@@ -244,7 +244,6 @@ RSpec.describe FlightSearchService do
         expect(result[:message]).to match(/no flights available/i)
       end
     end
-
   end
 
   describe "#readable_days" do
@@ -256,10 +255,9 @@ RSpec.describe FlightSearchService do
 
     it "returns short day names when not all days are included" do
       service = FlightSearchService.new("Hyderabad", "Delhi", Time.zone.today, "Economy", 1)
-      days = [0, 2, 4] 
+      days = [ 0, 2, 4 ]
       readable = service.send(:readable_days, days)
       expect(readable).to eq("S T T")
     end
   end
-
 end

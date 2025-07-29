@@ -93,12 +93,28 @@ RSpec.describe "Api::BookingsController", type: :request do
 
     it "returns 409 when not enough seats are available" do
       seat.update!(available_seats: 1)
-      post "/api/book", params: valid_params.merge(passengers: 2)
+      insufficient_seats_params = valid_params.deep_dup
+      insufficient_seats_params[:flight][:passengers] = 2
+
+      post "/api/book", params: insufficient_seats_params
 
       expect(response).to have_http_status(:conflict)
+
       json = response.parsed_body
       expect(json["updated"]).to eq(false)
       expect(json["error"]).to eq("Not enough seats")
+    end
+
+    it "returns 422 when flight data is missing" do
+      allow_any_instance_of(FlightBookingValidator).to receive(:valid?).and_return(false)
+      allow_any_instance_of(FlightBookingValidator).to receive(:errors).and_return([ { message: "Flight data is missing", status: 422 } ])
+
+      post "/api/book", params: valid_params.except(:flight)
+
+      expect(response).to have_http_status(:unprocessable_entity)
+      json = response.parsed_body
+      expect(json["updated"]).to eq(false)
+      expect(json["error"]).to eq("Flight data is missing")
     end
 
     it "returns 422 when booking service fails" do
