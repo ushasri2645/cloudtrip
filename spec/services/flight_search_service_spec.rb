@@ -98,7 +98,6 @@ RSpec.describe FlightSearchService do
 
         expect(result[:status]).to eq(200)
         expect(result[:flights]).to eq([])
-        # expect(result[:message]).to include("No flights available on")
       end
     end
 
@@ -113,7 +112,6 @@ RSpec.describe FlightSearchService do
         expect(result[:message]).to include("All seats are booked")
       end
     end
-
 
     context "when flight schedule seat does not exist" do
       it "creates a new flight schedule seat with available seats from base" do
@@ -146,16 +144,6 @@ RSpec.describe FlightSearchService do
         expect(result[:flights][0][:source]).to eq("Hyderabad")
       end
 
-      it "handles missing base flight seat gracefully" do
-        BaseFlightSeat.destroy_all
-
-        service = FlightSearchService.new("Hyderabad", "Delhi", Time.zone.today, "Economy", 1)
-        expect {
-          service.search_flights
-        }.to raise_error(NoMethodError)
-      end
-
-
       it "calculates total fare correctly based on dynamic pricing" do
         allow(DynamicPricingService).to receive(:calculate_price).and_return(100)
 
@@ -165,7 +153,6 @@ RSpec.describe FlightSearchService do
         expect(result[:flights][0][:price_per_seat]).to eq(100.0)
         expect(result[:flights][0][:total_fare]).to eq(7200.0)
       end
-
 
       it "returns multiple matching flights if present" do
         second_flight = Flight.create!(
@@ -215,5 +202,64 @@ RSpec.describe FlightSearchService do
         expect(result[:flights]).not_to be_empty
       end
     end
+    
+    context "when flights exist but none support the requested class" do
+      it "returns 404 with a class-not-available message" do
+        SeatClass.create!(name: "Business") 
+
+        service = FlightSearchService.new("Hyderabad", "Delhi", Time.zone.today, "Business", 1)
+        result = service.search_flights
+
+        expect(result[:status]).to eq(404)
+        expect(result[:message]).to eq("Sorry! 😔 No flights available for Business.")
+        expect(result[:flights]).to be_empty
+      end
+    end
+    
+    context "when base seat is missing for a valid flight" do
+      it "does not include that flight in the results" do
+        business_class = SeatClass.create!(name: "Business")
+
+        flight = Flight.create!(
+          flight_number: "123",
+          source: @source_airport,
+          destination: @destination_airport,
+          departure_time: 2.days.from_now.change(hour: 15),
+          duration_minutes: 150,
+          is_recurring: false
+        )
+
+        BaseFlightSeat.where(flight: flight, seat_class: business_class).destroy_all
+
+        FlightSchedule.create!(
+          flight: flight,
+          flight_date: Time.zone.today
+        )
+
+        service = FlightSearchService.new("Hyderabad", "Delhi", Time.zone.today, "Business", 1)
+        result = service.search_flights
+
+        expect(result[:flights]).to be_empty
+        expect(result[:status]).to eq(404)
+        expect(result[:message]).to match(/no flights available/i)
+      end
+    end
+
   end
+
+  describe "#readable_days" do
+    it "returns 'Everyday' when recurrence covers all days" do
+      service = FlightSearchService.new("Hyderabad", "Delhi", Time.zone.today, "Economy", 1)
+      days = (0..6).to_a
+      expect(service.send(:readable_days, days)).to eq("Everyday")
+    end
+
+    it "returns short day names when not all days are included" do
+      service = FlightSearchService.new("Hyderabad", "Delhi", Time.zone.today, "Economy", 1)
+      days = [0, 2, 4] 
+      readable = service.send(:readable_days, days)
+      expect(readable).to eq("S T T")
+    end
+  end
+
 end
