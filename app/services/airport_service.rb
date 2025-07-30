@@ -1,5 +1,5 @@
 class AirportService
-    def self.getCities
+    def getCities
         Airport.select(:city).order(:city).pluck(:city)
     end
 end
