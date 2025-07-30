@@ -138,7 +138,7 @@
       return "Everyday" if days.sort == (0..6).to_a
       Date::DAYNAMES.values_at(*days).pluck(0).join(" ")
     end
-     
+
     def route_exists?
       Flight.exists?(source: source_airport, destination: destination_airport)
     end
