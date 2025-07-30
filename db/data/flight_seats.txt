@@ -1,0 +1,10 @@
+AI101:Economy:3500:180:Business:7000:50
+AI102:Economy:3200:200:Business:6800:60:First Class:12000:10
+AI103:Economy:3000:190:Business:6500:55
+AI104:Economy:2000:100
+AI105:Economy:3300:180:Business:6900:40
+AI106:Economy:3400:150:First Class:11000:8
+AI107:Business:7100:35                  
+AI108:Economy:3100:170:Business:6700:45
+AI109:First Class:13000:12
+AI110:Economy:3500:200

@@ -1,52 +1,97 @@
-require "rails_helper"
+require 'rails_helper'
 
-RSpec.describe "Flights", type: :request do
-  DATA_PATH = Rails.configuration.flight_data_file
-
-  before(:each) do
-    FileUtils.mkdir_p(DATA_PATH.dirname)
-    File.write(DATA_PATH, <<~DATA)
-      F101,Bangalore,London,2025-07-12,03:23 PM,2025-07-13,09:23 AM,100,500,50,30,20,50,30,20
-      F102,Bangalore,New York,2025-07-04,03:23 PM,2025-07-12,09:23 PM,10,900,5,3,2,5,3,2
-      F103,Chennai,London,2025-07-05,03:23 PM,2025-07-12,09:23 PM,50,600,20,20,10,20,20,10
-    DATA
-  end
-
-  describe "GET /flights/index" do
-    it "returns http success" do
-      get "/flights/index"
-      expect(response).to have_http_status(:success)
-      expect(response.body).to include("Search")
-    end
-  end
-
-  describe "GET /flights/search" do
-    it "renders the index page" do
-      get "/flights/search", params: { source: "Bangalore", destination: "London" }
-      expect(response).to have_http_status(:success)
-    end
-  end
-
-  describe "POST /flights/search" do
-    it "renders matching flights if any exist" do
-      post "/flights/search", params: {
-        source: "Bangalore",
-        destination: "London"
-      }
-
-      expect(response).to have_http_status(:success)
-      expect(response.body).to include("Bangalore")
-      expect(response.body).to include("London")
+RSpec.describe "Api::FlightsController", type: :request do
+  describe "POst /api/flights/search" do
+    before(:each) do
+      BaseFlightSeat.delete_all
+      Flight.delete_all
+      SeatClass.delete_all
+      Airport.delete_all
     end
 
-    it "shows 'Please enter cities mentioned in dropdown.' if none found" do
-      post "/flights/search", params: {
-        source: "Mumbai",
-        destination: "Paris",
-        date: "2025-07-12"
-      }
-      expect(response).to have_http_status(:success)
-      expect(response.body).to include("Please enter cities mentioned in dropdown.")
+    let!(:economy_class) { SeatClass.create!(name: "Economy") }
+
+    let!(:mumbai) { Airport.create!(code: "BOM", city: "Mumbai") }
+    let!(:delhi)  { Airport.create!(code: "DEL", city: "Delhi") }
+
+    let!(:flight) do
+      Flight.create!(
+        flight_number: "F101",
+        source: mumbai,
+        destination: delhi,
+        departure_time: (Time.zone.now).strftime("%H:%M:%S"),
+        duration_minutes: 120
+      )
+    end
+
+    let!(:base_flight_seat) do
+      BaseFlightSeat.create!(
+        flight: flight,
+        seat_class: economy_class,
+        total_seats: 100,
+        price: 3500
+      )
+    end
+    let!(:flight_schedule) do
+      FlightSchedule.create!(
+        flight: flight,
+        flight_date: Time.zone.today
+      )
+    end
+
+    let!(:flight_schedule_seat) do
+      FlightScheduleSeat.create!(
+        flight_schedule: flight_schedule,
+        seat_class: economy_class,
+        available_seats: 80
+      )
+    end
+
+    context "when valid search parameters are provided" do
+      it "returns a list of matching flights with 200 status" do
+        post "/api/flights", params: {
+          source: "Mumbai",
+          destination: "Delhi",
+          date: Time.zone.today.to_s,
+          class_type: "Economy",
+          passengers: 2
+        }
+
+        expect(response).to have_http_status(:ok)
+        json = response.parsed_body
+        expect(json["flights"]).not_to be_empty
+      end
+    end
+
+    context "when missing or invalid parameters are provided" do
+      it "returns 400 Bad Request with validation errors" do
+        post "/api/flights", params: {
+          source: "", destination: "", date: "", class_type: "", passengers: ""
+        }
+
+        expect(response).to have_http_status(:bad_request)
+        json = response.parsed_body
+        expect(json["errors"]).not_to be_empty
+      end
+    end
+
+
+    context "when no available seats for given class and passengers" do
+      it "returns 409 Conflict with no flights message" do
+        flight_schedule_seat.update!(available_seats: 0)
+
+        post "/api/flights", params: {
+          source: "Mumbai",
+          destination: "Delhi",
+          date: Time.zone.today.to_s,
+          class_type: "Economy",
+          passengers: 2
+        }
+
+        expect(response).to have_http_status(:conflict)
+        json = response.parsed_body
+        expect(json["message"]).to eq("All seats are booked in Economy class on #{Time.zone.today}")
+      end
     end
   end
 end

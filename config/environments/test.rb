@@ -50,5 +50,6 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
-  config.flight_data_file = Rails.root.join("spec/testData/testData.txt")
+  config.flights_file = Rails.root.join("spec/testData/flights_testData.txt")
+  config.seats_file   = Rails.root.join("spec/testData/seats_testData.txt")
 end
