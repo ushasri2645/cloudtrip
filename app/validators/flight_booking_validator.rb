@@ -1,63 +1,43 @@
 class FlightBookingValidator
-  attr_reader :errors, :flight, :schedule, :seat_class, :seat, :passengers
+  attr_reader :errors, :params
 
   def initialize(params)
-    @flight_number = params[:flight_number]
-    @source        = params[:source]
-    @destination   = params[:destination]
-    @date          = params[:date]
-    @class_type    = params[:class_type]
-    @passengers    = params[:passengers].to_i
-    @errors        = []
+    @params = params
+    @errors = []
   end
 
   def valid?
-    fetch_flight &&
-    fetch_schedule &&
-    fetch_seat_class &&
-    fetch_seat &&
-    check_seat_availability
+    validate_presence && validate_passenger_count
   end
+
+  def flight_number    = params[:flight_number]
+  def source           = params[:source]
+  def destination      = params[:destination]
+  def class_type       = params[:class_type]
+  def date             = params[:date]
+  def passengers       = params[:passengers].to_i
 
   private
 
-  def fetch_flight
-    source_airport = Airport.find_by("LOWER(city) = ?", @source.downcase)
-    destination_airport = Airport.find_by("LOWER(city) = ?", @destination.downcase)
+  def validate_presence
+    required_fields = %i[flight_number source destination date class_type passengers]
+    missing = required_fields.select { |f| params[f].blank? }
 
-    return add_error("Source or destination airport not found", 404) unless source_airport && destination_airport
-
-    @flight = Flight.find_by(
-      flight_number: @flight_number,
-      source: source_airport,
-      destination: destination_airport
-    ) || add_error("Flight not found", 404)
+    if missing.any?
+      add_error("Missing required fields: #{missing.join(', ')}", 400)
+      return false
+    end
+    true
   end
 
-  def fetch_schedule
-    @schedule = @flight.flight_schedules.find_by(flight_date: @date.to_s) ||
-                add_error("No schedule available on this date", 404)
-  end
+  def validate_passenger_count
+    return true if passengers.positive?
 
-  def fetch_seat_class
-    @seat_class = SeatClass.find_by("LOWER(name) = ?", @class_type.downcase.tr("_", " ")) ||
-                  add_error("Seat class not found", 404)
-  end
-
-  def fetch_seat
-   @seat = FlightScheduleSeat.find_by(
-      flight_schedule_id: @schedule.id,
-      seat_class_id: @seat_class.id
-    ) || add_error("No seat info for this class on the selected date", 404)
-  end
-
-  def check_seat_availability
-    return true if @seat.available_seats >= @passengers
-    add_error("Not enough seats", 409)
+    add_error("Passenger count must be at least 1", 400)
+    false
   end
 
   def add_error(message, status)
-    @errors << { message: message, status: status }
-    nil
+    errors << { message: message, status: status }
   end
 end
