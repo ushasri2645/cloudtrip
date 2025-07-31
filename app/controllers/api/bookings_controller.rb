@@ -1,7 +1,16 @@
 module Api
   class BookingsController < ApplicationController
     def booking
-      validator = FlightBookingValidator.new(extract_booking_params(params[:flight], params[:passengers]))
+      flight_number, class_type, passengers, source, destination, departure_date, departure_time = extract_booking_params
+      params = {
+        flight_number: flight_number,
+        class_type: class_type,
+        passengers: passengers,
+        source: source,
+        destination: destination,
+        date: departure_date
+      }
+      validator = FlightBookingValidator.new(params)
 
       unless validator.valid?
         return render json: { updated: false, error: validator.errors.last[:message] }, status: validator.errors.last[:status]
@@ -23,8 +32,8 @@ module Api
         render json: { updated: false, error: "Both onward and return bookings must be provided" }, status: :bad_request and return
       end
 
-      onward_validator = FlightBookingValidator.new(extract_booking_params(bookings[0]))
-      return_validator = FlightBookingValidator.new(extract_booking_params(bookings[1]))
+      onward_validator = FlightBookingValidator.new(prepare_service_params(bookings[0]))
+      return_validator = FlightBookingValidator.new(prepare_service_params(bookings[1]))
 
       unless onward_validator.valid?
         return render json: { updated: false, error: "Onward booking failed: #{onward_validator.errors.last[:message]}" }, status: onward_validator.errors.last[:status]
@@ -73,12 +82,25 @@ module Api
 
     private
 
-    def extract_booking_params(flight_data, passengers = nil)
-      return {} unless flight_data
+    def extract_booking_params
+      flight_params   = params[:flight] || {}
+      flight_number   = flight_params[:flight_number]
+      class_type      = flight_params[:class_type] || "economy"
+      passengers      = params[:passengers].to_i
+      passengers      = 1 if passengers <= 0
+      source          = flight_params[:source]
+      destination     = flight_params[:destination]
+      departure_date  = flight_params[:departure_date]
+      departure_time  = flight_params[:departure_time]
+
+      [ flight_number, class_type, passengers, source, destination, departure_date, departure_time ]
+    end
+
+    def prepare_service_params(flight_data)
       {
         flight_number: flight_data[:flight_number],
         class_type: flight_data[:class_type] || "economy",
-        passengers:     [ flight_data[:passengers].to_i, 1 ].max,
+        passengers: (flight_data[:passengers].to_i <= 0 ? 1 : flight_data[:passengers].to_i),
         source: flight_data[:source],
         destination: flight_data[:destination],
         date: flight_data[:departure_date]
